@@ -1,0 +1,11 @@
+#pragma GCC optimize("O3")
+#include <bits/stdc++.h>
+#define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout);
+using namespace std;
+const int maxn=100005;
+long long n;
+int main() {
+    ios_base::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
+    cin >> n;
+    
+}

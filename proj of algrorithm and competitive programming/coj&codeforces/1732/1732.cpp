@@ -1,0 +1,22 @@
+#pragma GCC optimize("O3")
+#include <bits/stdc++.h>
+#define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout);
+using namespace std;
+#define all(x) x.begin(),x.end()
+#define eb emplace_back
+typedef long long ll;
+const int maxn=100005;
+
+int main() {
+    ios_base::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
+    int t;
+    cin >> t;
+    while(t--) {
+        int n;
+        cin >> n;
+        int q=n%100;
+        n/=100;
+        if((n*n+q*q)%7==1) cout << "YES\n";
+        else cout << "NO\n";
+    }
+}

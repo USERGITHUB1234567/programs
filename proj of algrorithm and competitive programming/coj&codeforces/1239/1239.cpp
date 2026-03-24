@@ -1,0 +1,11 @@
+#include <bits/stdc++.h>
+#pragma GCC optimize("O3")
+using namespace std;
+
+int main()
+{
+    int n1,n2,k1,k2;
+    cin >> n1 >> n2 >> k1 >> k2;
+    if(n1<=n2) cout << "Second";
+    else cout << "First";
+}
