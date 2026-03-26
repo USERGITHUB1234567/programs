@@ -41,70 +41,12 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q,p[maxn],st[maxn],en[maxn],timer=0;
-vector<int>adj[maxn];
-int col[maxn];
-bool mk[maxn];
-struct fenwick_tree{
-    int ft[maxn];
-    void update(int i, int v) {
-        while(i<=n) {ft[i]+=v;i+=i&-i;}
-    }
-    int query(int i) {
-        int res=0;
-        while(i>0) {res+=ft[i];i-=i&-i;}
-    }
-    void range_upd(int i, int j, int v) {
-        if(i<1 || j<1) return;
-        update(j,v);if(i-1>=1)update(i-1,-v);
-    }
-    int range_query(int i, int j) {
-        return query(j)-query(i-1);
-    }
-}fen;
-inline void dfs(int u) {
-    st[u]=++timer;
-    for(int v:adj[u]) {
-        if(v==p[u]) continue;
-        dfs(v);
-    }
-    en[u]=timer;
-}
-inline void child_query(int u) {
-    int t=fen.range_query(st[u],st[u]);
-    if(t==0) {
-        fen.range_upd(st[u],st[u],1);
-    } 
-    else {
-        for(int v:adj[u]) {
-            if(v==p[u]) continue;
-            fen.range_upd(st[v],st[v],1);
-        }
-    }
-}
-inline void subtree_query(int u) {
-    //cerr << st[u] << ' ' << en[u] << '\n';
-    fen.range_upd(st[u],en[u],-1);
-}
-int main(int argc, char** argv) {
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
-    file("tree")
-    cin >> n >> q;
-    for(int i=2; i<=n; ++i) {cin >> p[i];adj[i].pb(p[i]),adj[p[i]].pb(i);}
-    dfs(1);
-    // for(int i=1; i<=n; ++i) {
-    //     cout << st[i] << ' ' << en[i] << '\n';
-    // }
-    while(q--) {
-        int t,v;cin >> t >> v;
-        if(t==1) child_query(v);
-        else if(t==2) subtree_query(v);
-        else {
-            if(fen.range_query(st[v],st[v])>=1) cout << "black\n";
-            else cout << "white\n";
-        }
-    }
-    return 0;
+
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    freopen("loco.inp", "w", stdout);
+    cout << rnd1(1,1000000) << ' ' << (1,2015);
+    return 0; 
 
 } 
 /**/

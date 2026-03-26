@@ -41,95 +41,67 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-long long n,k,a[maxn],s[maxn];
-namespace soup1{
-    inline bool check() {return n<=100 && k<=100;}
-    int vis[maxn];
-    long long add[maxn],in[maxn];
-    inline void dfs(int u) {
-        if(vis[u]==in[u] && in[u]!=0) return;
-        //cerr << u << ' ' << s[u] << '\n';
-        ++vis[u];
-        add[s[u]]+=a[u];
-        add[u]-=a[u];
-        if(s[u]==u || in[u]==0) return;
-        dfs(s[u]);
-    }
-    void solve() {
-        for(int i=1; i<=n; ++i) ++in[s[i]];
-        for(int i=1; i<=k; ++i) {
-            for(int j=1; j<=n; ++j) {vis[j]=0;add[j]=a[j];}
-            for(int j=1; j<=n; ++j) {
-                if(vis[j]<=in[j]) dfs(j);
-            }
-            for(int j=1; j<=n; ++j) a[j]=add[j];
-        }
-        vector<int>ans;
-        int mx=0;
-        for(int i=1; i<=n; ++i) {
-            if(a[i]>mx) {mx=a[i];ans.clear();ans.pb(i);}
-            else if(a[i]==mx) {ans.pb(i);}
-        }
-        for(int i=1; i<=n; ++i) cout << a[i] << ' ';
-        //cout << '\n';
-        cout << mx << '\n';
-        for(int i:ans) cout << i << '\n';
-    }
-}
+long long n,m;
 namespace soup2{
-    int ncomp=0;
-    vector<int>comp[maxn];
-    bool vis[maxn];
-    inline void dfs(int u) {
-        if(vis[u]) return;
-        vis[u]=true;
-        comp[ncomp].pb(u);
-        if(s[u]==u) return;
-        dfs(s[u]);
-    }
+    long long f[1000006];
     void solve() {
-        for(int i=1; i<=n; ++i) {if(!vis[i]) {++ncomp;dfs(i);}}
-        vector<pair<int,int>>ans;
-        for(int c=1; c<=ncomp; ++c) {
-            int mx=0;
-            vector<int>pos;
-            for(int j=0; j<comp[c].size(); ++j) {
-                if(a[comp[c][j]]>mx) {
-                    mx=a[comp[c][j]];
-                    pos.clear();
-                    pos.pb(j);
-                }
-                else if(a[comp[c][j]]==mx) pos.pb(j);
-                //cerr << comp[c][j] << ' ' << a[comp[c][j]] << ' ' << j << '\n';
-            }
-            for(int i:pos) {
-                ans.pb({mx,comp[c][(i+k)%comp[c].size()]});
-            }
+        f[1]=1%m,f[2]=1%m,f[3]=2%m;
+        for(int i=4; i<=n+1; ++i) {
+            f[i]=(f[i-1]+f[i-2]+f[i-3])%m;
         }
-        vector<int>res;
-        int mx=0;
-        for(auto[u,v]:ans) mx=max(mx,u);
-        for(auto[u,v]:ans) {if(u==mx)res.pb(v);}
-        cout << mx << '\n';
-        sort(all(res));
-        for(int i:res) cout << i << '\n';
+        cout << f[n+1];
     }
 }
-int main(int argc, char** argv) {
+struct matrix{
+    long long a[3][3];
+    matrix() {memset(a,0,sizeof(a));}
+};
+inline matrix multiply(matrix &x, matrix &y) {
+    matrix res;
+    for(int i=0; i<3; ++i) {
+        for(int j=0; j<3; ++j) {
+            for(int k=0; k<3; ++k) {
+                res.a[i][j]=(res.a[i][j]+x.a[i][k]*y.a[k][j])%m;
+            }
+        }
+    }
+    return res;
+}
+inline matrix power(long long exp, matrix &base) {
+    matrix res;
+    res.a[0][0]=1,res.a[0][1]=0,res.a[0][2]=0;
+    res.a[1][0]=0,res.a[1][1]=1,res.a[1][2]=0;
+    res.a[2][0]=0,res.a[2][1]=0,res.a[2][2]=1;
+    while(exp) {
+        if(exp&1) res=multiply(res,base);
+        base=multiply(base,base);
+        exp>>=1;
+    }
+    return res;
+}
+namespace soup3{
+    void solve() {
+        matrix mat;
+        mat.a[0][0]=0,mat.a[0][1]=1,mat.a[0][2]=0;
+        mat.a[1][0]=0,mat.a[1][1]=0,mat.a[1][2]=1;
+        mat.a[2][0]=1,mat.a[2][1]=1,mat.a[2][2]=1;
+        if(n<=3) {
+            if(n==1) cout << 1%m;
+            else if(n==2) cout << 1%m;
+            else if(n==3) cout << 2%m;
+            return;
+        }
+        mat=power(n-2,mat);
+        cout << (mat.a[2][0]+mat.a[2][1]+(mat.a[2][2]<<1))%m;
+    }
+}
+int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
-    file("ball")
-    cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    for(int i=1; i<=n; ++i) {cin >> s[i];}
-    if(soup1::check) soup1::solve();
-    //cout << '\n';
-    else soup2::solve();
-    return 0;
+    file("loco") 
+    cin >> n >> m;
+    if(n<=1000006) soup2::solve();
+    else soup3::solve();
+    return 0; 
 
 } 
 /**/
-/*
-8 1
-654 774 995 682 883 801 203 324 
-2 6 4 1 5 8 8 7
-*/

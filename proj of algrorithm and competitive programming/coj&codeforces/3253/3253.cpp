@@ -41,57 +41,37 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-long long n;
-namespace soup1{
-    int ans=0;
-    string s="";
-    inline void dfs(string s) {
-        if(s.size()==n) {
-            bool st=true;
-            for(char c:s) {
-                if(c=='H') st=true;
-                else if(c=='S' || c=='D') st=false;
-                else if(c=='A' || c=='E' || c=='I' || c=='O' || c=='U') st^=1;
-            }
-            if(st) ++ans;
-            return;
+struct matrix{
+    long long a[2][2];
+    matrix() {memset(a,0,sizeof(a));}
+};
+inline matrix multiply(matrix &x, matrix &y) {
+    matrix res;
+    for(int i=0; i<2; ++i) {
+        for(int j=0; j<2; ++j) {
+            for(int k=0; k<2; ++k) res.a[i][j]=(res.a[i][j]+x.a[i][k]*y.a[k][j])%mod;
         }
-        for(int i=0; i<=25; ++i) {dfs(s+char('A'+i));}
     }
-    void solve() {dfs(s);cout << ans%mod;}
+    return res;
 }
-namespace soup2{
-    long long f[maxn],ft[maxn];
-    void solve() {
-        f[1]=19;
-        ft[1]=7;
-        for(int i=2; i<=n; ++i) {
-            for(int j=0; j<25; ++j) {
-                char c=j+'A';
-                if(c=='H') f[i]=(f[i]+modexp(26,i-1,mod));
-                else if(c=='S' || c=='D') {
-                    ft[i]=(ft[i]+modexp(26,i-1,mod));
-                }
-                else if(c=='A' || c=='E' || c=='I' || c=='O' || c=='U') {
-                    f[i]=(f[i]+ft[i-1])%mod;
-                    ft[i]=(ft[i]+f[i-1])%mod;
-                }
-                else {
-                    f[i]=(f[i]+f[i-1])%mod;
-                }
-            }
-        }
-        cout << f[n];
+inline matrix power(long long exp, matrix &base) {
+    matrix res;
+    res.a[0][0]=1,res.a[1][1]=1;
+    while(exp) {
+        if(exp&1) res=multiply(res,base);
+        base=multiply(base,base);
+        exp>>=1;
     }
+    return res;
 }
-int main(int argc, char** argv) {
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
-    file("mood")
-    cin >> n;
-    soup1::solve();
-    // cout << '\n';
-    // soup2::solve();
-    return 0;
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    long long n;cin >> n;
+    matrix m;
+    m.a[0][0]=19,m.a[0][1]=6,m.a[1][0]=7,m.a[1][1]=20;
+    m=power(n,m);
+    cout << m.a[0][0]%mod;
+    return 0; 
 
 } 
 /**/
