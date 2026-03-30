@@ -145,8 +145,9 @@ namespace soupfull {
             unite(u,v,i);
         }
         for(int i=1; i<=n; ++i) seg.update(1,1,n,i,f[i]);
-        for(int i=1; i<=n; ++i) cout << f[i] << ' ';
+        //for(int i=1; i<=n; ++i) cout << f[i] << ' ';
         while(true) {
+            //cerr << 'a';
             bool stop=true;
             vector<int>bucket[m+1];
             for(int i=1; i<=q; ++i) {
@@ -160,16 +161,16 @@ namespace soupfull {
             for(int e=1; e<=m; ++e) {
                 for(int i:bucket[e]) {
                     if(query(i,e)) range[i].se=e;
-                    else range[i].se=e+1;
+                    else range[i].fi=e+1;
                 }
             }
         }
-        for(int i=1; i<=n; ++i) cout << range[i].fi;
+        for(int i=1; i<=q; ++i) cout << range[i].fi << '\n';
     }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("vertices")
+    //file("vertices")
     cin >> n >> m >> q;
     for(int i=1; i<=m; ++i) cin >> edge[i].fi >> edge[i].se;
     for(int i=1; i<=q; ++i) {
@@ -177,9 +178,9 @@ int main(int argc, char** argv) {
         if(queries[i].fi==queries[i].se) range[i].fi=0,range[i].se=0;
         else range[i].fi=0,range[i].se=m;
     }
-    soup::solve();
+    // soup::solve();
     // cout << '\n' ;
-    //soupfull::solve();
+    soupfull::solve();
     return 0; 
 
 } 
