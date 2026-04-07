@@ -1,8 +1,35 @@
 {
-    "files.associations": {
-        "vector": "cpp",
-        "typeindex": "cpp",
-        "typeinfo": "cpp"
-    },
-    "C_Cpp.default.compilerPath": "/usr/bin/g++"
+  "files.associations": {
+    "vector": "cpp",
+    "typeindex": "cpp",
+    "typeinfo": "cpp"
+  },
+  "C_Cpp.default.compilerPath": "/usr/bin/g++",
+  "background.fullscreen": {
+    // `images` supports online and local images, as well as folders.
+    "images": [
+      // online images, only `https` is allowed.
+      //"https://hostname/online.jpg",
+      //"https://tse2.mm.bing.net/th/id/OIP.Vhc9h1RvCwyGVap1nU_XnAHaEo?rs=1&pid=ImgDetMain&o=7&rm=3",
+      //"https://th.bing.com/th/id/R.8a1c5876c20431596e2d8f5e3bda21fc?rik=xVzGnyso0oAcBQ&riu=http%3a%2f%2fwallpapercave.com%2fwp%2fENUVf3f.jpg&ehk=85q2Qc4svV8Kj7ng1w2zURJtFcecywLzPFi8K56%2beIk%3d&risl=&pid=ImgRaw&r=0",
+      // local images
+      //"file:///local/path/img.jpeg",
+      //"/home/xie/downloads/img.gif",
+      //"C:/Users/xie/img.bmp",
+      //"D:\\downloads\\images\\img.webp",
+      // local folders
+      //"/home/xie/images",
+      // data URL
+      "data:image/*;base64,<base64-data>"
+    ],
+    "background-size":"auto",
+    "opacity": 0.1,
+    "size": "cover",
+    "position": "center",
+    "interval": 0,
+    "random": true
+  },
+  // `sidebar` and `panel` have the same config as `fullscreen`
+  "background.sidebar": {},
+  "background.panel": {}
 }

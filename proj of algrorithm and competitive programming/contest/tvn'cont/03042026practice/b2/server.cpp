@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=2003,mod=1000000007,maxb=320; 
+const int maxn=1003,mod=1000000007,maxb=320; 
 namespace mathematics{ 
     long long fact[maxn],ifact[maxn]; 
     long long __gcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -42,121 +42,70 @@ auto imp_st=high_resolution_clock::now();
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
 int n,k;
-string s[maxn];
+struct order{long long s,t,c;}o[maxn];
+
 namespace soup1{
     void solve() {
-        int fm=1<<n;
-        int cnt=0;
-        for(int mask=0; mask<fm; ++mask) {
-            int d=0;
-            vector<int>v;
+        int fm=(1<<n);
+        long long ans=0;
+        for(int mask=1; mask<fm; ++mask) {
+            //cout << mask << '\n';
+            priority_queue<int,vector<int>,greater<int>>pq;
+            long long sum=0;
+            bool ck=true;
+            for(int i=1; i<=k; ++i) pq.push(0);
             for(int i=0; i<n; ++i) {
-                if((1<<i)&mask) v.pb(i+1);
-            }
-            if(v.size()<2) continue;
-            for(int i=0; i<v.size(); ++i) {
-                for(int j=i+1; j<v.size(); ++j) {
-                    if(s[v[i]]==s[v[j]]) ++d;
+                if((1<<i)&mask) {
+                    cerr << mask << ' ' << i << '\n';
+                    //cout << 'a';
+                    //cout << sum << '\n';
+                    //if(pq.empty()) continue;
+                    int t=pq.top();
+                    //if(t>o[i+1].s) {ck=false;}break;
+                    if(t>o[i+1].s) continue;
+                    sum+=o[i+1].c;
+                    pq.pop();
+                    pq.push(t+o[i+1].t+o[i+1].s);
+                    //cout << sum << '\n';
                 }
             }
-            if(d==k) ++cnt;
-            //cnt+=t1;
+            //if(!ck) continue;
+            ans=max(ans,sum);
         }
-        cout << cnt;
+        cout << ans;
     }
 }
-namespace soup2{
+namespace turtlesoup{
     void solve() {
-        unordered_map<string,int>ump;
-        for(string t:s) ++ump[t];
-        vector<int>val;
-        for(auto x:ump) val.pb(x.second);
-        if(k==1) {
-
-        }
-    }
-}
-namespace soupfull{
-    long long ans=0;
-    bool valid(long double x) {
-        long long t=x;
-        return x-t==0;
-    }
-    inline long long subtract(long long s1,long long s2) {
-        s1-=s2;
-        if(s1<0) s1+=mod;
-        return s1;
-    }
-    inline long double quadratic_equation_solve(long double a, long double b, long double c) {
-        long long delta=b*b-4*a*c;
-        if(delta<0) return LLONG_MAX;
-        if(delta==0) return -b/(2*a);
-        else {
-            long double x1=-((b+sqrt(delta))/(2*a)),x2=-((b-sqrt(delta))/(2*a));
-            if(x1>=0) return x1;
-            else return x2;
-            //return x2;
-        }
-    }
-    long long f[maxn][maxn];
-    void solve() {
-        //cout << quadratic_equation_solve(1,1,-2);
-        setUpFactor();
-        // for(int i=1; i<=n; ++i) {
-        //     long double x=quadratic_equation_solve()
-        // }
-        unordered_map<string,int>ump;
-        for(int i=1; i<=n; ++i) ++ump[s[i]];
-        vector<int>val;
-        for(auto x:ump) val.pb(x.second);
-        cout << val.size() << '\n';
-        for(int i:val) cout << i << ' ';
-        cout << '\n';
-        //f[1][1]=val[0];
-        for(int i=1; i<=k; ++i) {
-            for(int s=1; s*(s+1)<=(i<<1) && s<=val[0]; ++s) {
-                int t=(s*(s+1))/2,v=((s*(s+1))/2)*ncr(s,val[0]);
-                f[i][1]=v%mod;
-            }
-        }
-        for(int i=1; i<=k; ++i) {
-            for(int j=1; j<=val.size(); ++j) {
-                for(int s=1; s*(s+1)<=(i<<1) && s<=val[j-1]; ++s) {
-                    int t=(s*(s+1))/2,v=((s*(s+1))/2)*ncr(s,val[j-1]);
-                    f[i][j]=(f[i][j]+f[i-s][j-1]+v)%mod;
-                }
-            }
-        }
-        for(int i=1; i<=k; ++i) {
-            for(int j=1; j<=val.size(); ++j) cout << f[i][j] << ' ';
-            cout << '\n';
-        }
-        cout << f[k][val.size()];
+        long long ans=0;
+        for(int i=1; i<=n; ++i) ans+=o[i].c;
+        cout << ans;
     }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("anagram")
+    file("server")
     cin >> n >> k;
-    for(int i=1; i<=n; ++i) {cin >> s[i];sort(all(s[i]));}
-    soup1::solve();
-    // cout << '\n';
-    // soupfull::solve();
+    for(int i=1; i<=n; ++i) cin >> o[i].s >> o[i].t >> o[i].c;
+    sort(o+1,o+1+n,[](order a, order b) {return a.s<b.s;});
+    //cout << n << ' ' << k << '\n';
+    //for(int i=1; i<=n; ++i) cout << o[i].s << ' ' << o[i].t << ' ' << o[i].c << '\n';
+    if(n<=20) soup1::solve();
+    else turtlesoup::solve();
     return 0; 
 
 } 
 /**/
-
 /*
 3 1
-ovo
-ono
-voo
+2 7 5
+1 3 3
+4 1 3
 
 5 2
-trava
-vatra
-vrata
-leo
-ole
+1 5 4
+1 4 5
+1 3 2
+4 1 2
+5 6 1
 */
