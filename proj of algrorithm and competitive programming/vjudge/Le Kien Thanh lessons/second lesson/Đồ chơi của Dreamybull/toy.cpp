@@ -41,83 +41,39 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-class disjoint_sets_union{
-    private:
-        vector<int>p,sz,his;
-        int n;
-    public:
-        disjoint_sets_union(int _n) {
-            n=_n;
-            p.resize(n);sz.resize(n,1);
-            iota(all(p),0);
+long long n;
+vector<long long>ans,fac;
+vector<long long> factorize(long long t) {
+    vector<long long>res;
+    for(int i=2; i*i<=t; ++i) {
+        if(!(n%i)) {
+            int j=t/i;
+            res.pb(i);
+            if(j!=i) res.pb(j);
         }
-        inline int root(int u) {return (p[u]==u?u:root(p[u]));}
-        inline void unite(int u, int v) {
-            u=root(u),v=root(v);
-            if(u==v) return;
-            if(sz[u]<sz[v]) swap(u,v);
-            his.pb(v);
-            sz[u]+=sz[v];
-            p[v]=u;
-        }
-        inline void rollback() {
-            int v=his.back(),u=p[v];
-            sz[u]-=sz[v];
-            p[v]=v;
-            his.pop_back();
-        }
-
-};
-/* vector<pair<int,int>> segments[4 * N];
-
-vector<array<int, 4>> edges; // (u, v, l, r)
-
-Void add_edge(int u, int v, pair<int,int> e, int l, int r, int id){
-	If (u <= l && r <= v){
-		segments.push_back(e);
-		return;
+    }
+    return res;
 }
-Int mid = (l + r) >> 1;
-If (u <= mid) add_edge(u, v, e, l, mid, id * 2);
-If (v > mid) add_edge(u, v, e, mid+1, r, id * 2 + 1);
+inline void backtrack(long long x, int id, long long cur) {
+    if(x==1) {ans.pb(cur);return;}
+    for(int i=id; i<fac.size(); ++i) {
+        long long d=fac[i];
+        if(d>x) break;
+        if(x%d) continue;
+        backtrack(x/d,i,cur+d-1);
+    }
 }
-
-Void traverse(DSU &graph, int l, int r, int id){
-	Int current_version = graph.history.size();
-	for(pair<int,int> e: segments[id])
-		graph.join_set(e.first, e.second);
-	If (l == r){
-		Ans[l] = n - graph.history.size();
-		while(graph.history.size() > current_version)
-			graph.roll_back();
-		return;
-}
-Int mid = (l + r) >> 1;
-traverse(graph, l, mid, id * 2);
-traverse(graph, mid+1, r, id * 2 + 1);
-
-	while(graph.history.size() > current_version)
-		graph.roll_back();
-}
-
-
-Void solve(){
-	for(auto i: edges){
-		add_edge(i[2], i[3], make_pair(i[0], i[1]), 1, n, 1);
-}
-
-DSU graph(n);
-traverse(graph, 1, n, 1);
-} */
-
-
-
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    // disjoint_sets_union dsu(10);
-    // dsu.unite(1,2);
-    // dsu.rollback();
-    // cout << dsu.root(2);
+    cin >> n;
+    if(n==1) {cout << 1 << '\n' << 0;return 0;}
+    fac=factorize(n);
+    sort(all(fac));
+    backtrack(n,0,0);
+    ans.pb(n-1);
+    sortunique(ans);
+    cout << ans.size() << '\n';
+    for(int i:ans) cout << i << ' ';
     return 0; 
 
 } 

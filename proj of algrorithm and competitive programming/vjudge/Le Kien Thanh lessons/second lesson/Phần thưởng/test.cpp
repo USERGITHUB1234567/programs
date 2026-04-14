@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=302,mod=1000000007,maxb=320; 
 namespace mathematics{ 
     long long fact[maxn],ifact[maxn]; 
     long long __gcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -41,83 +41,79 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-class disjoint_sets_union{
-    private:
-        vector<int>p,sz,his;
-        int n;
-    public:
-        disjoint_sets_union(int _n) {
-            n=_n;
-            p.resize(n);sz.resize(n,1);
-            iota(all(p),0);
+int n,k,a[maxn];
+namespace souprua{
+    void solve() {
+        sort(a+1,a+1+n);
+        long long ans=0;
+        int i=0;
+        while(k--) {
+            ans+=a[n-i]-a[i+1];
+            ++i;
         }
-        inline int root(int u) {return (p[u]==u?u:root(p[u]));}
-        inline void unite(int u, int v) {
-            u=root(u),v=root(v);
-            if(u==v) return;
-            if(sz[u]<sz[v]) swap(u,v);
-            his.pb(v);
-            sz[u]+=sz[v];
-            p[v]=u;
+        cout << ans;
+    }
+}
+namespace soupfull {
+    const ll NEG=-4e18;
+    static ll f[305][305][155];
+    inline ll getf(int l, int r, int t) {
+        if (l > r) return (t == 0 ? 0LL : NEG);
+        return f[l][r][t];
+    }
+    void solve() {
+        // initialize
+        for (int i = 1; i <= n; ++i)
+            for (int j = 1; j <= n; ++j)
+                for (int t = 0; t <= k; ++t)
+                    f[i][j][t] = NEG;
+
+        // base: any non-empty interval with 0 pairs -> 0
+        for (int l = 1; l <= n; ++l)
+            for (int r = l; r <= n; ++r)
+                f[l][r][0] = 0;
+
+        for (int len = 1; len <= n; ++len) {
+            for (int l = 1; l + len - 1 <= n; ++l) {
+                int r = l + len - 1;
+                int maxT = min(k, len / 2);
+                for (int t = 1; t <= maxT; ++t) {
+                    ll &cur = f[l][r][t];
+                    // remove one from left or right (no reward)
+                    cur = max(cur, getf(l+1, r, t));
+                    cur = max(cur, getf(l, r-1, t));
+
+                    // choose two from front (l, l+1)
+                    if (l + 1 <= r) {
+                        ll base = getf(l+2, r, t-1);
+                        if (base != NEG) cur = max(cur, base + llabs((ll)a[l] - (ll)a[l+1]));
+                    }
+
+                    // choose two from back (r-1, r)
+                    if (r - 1 >= l) {
+                        ll base = getf(l, r-2, t-1);
+                        if (base != NEG) cur = max(cur, base + llabs((ll)a[r] - (ll)a[r-1]));
+                    }
+
+                    // choose one from front and one from back (l, r)
+                    if (l <= r) {
+                        ll base = getf(l+1, r-1, t-1);
+                        if (base != NEG) cur = max(cur, base + llabs((ll)a[l] - (ll)a[r]));
+                    }
+                }
+            }
         }
-        inline void rollback() {
-            int v=his.back(),u=p[v];
-            sz[u]-=sz[v];
-            p[v]=v;
-            his.pop_back();
-        }
 
-};
-/* vector<pair<int,int>> segments[4 * N];
-
-vector<array<int, 4>> edges; // (u, v, l, r)
-
-Void add_edge(int u, int v, pair<int,int> e, int l, int r, int id){
-	If (u <= l && r <= v){
-		segments.push_back(e);
-		return;
+        ll ans = getf(1, n, k);
+        if (ans < 0) ans = 0;
+        cout << ans << '\n';
+    }
 }
-Int mid = (l + r) >> 1;
-If (u <= mid) add_edge(u, v, e, l, mid, id * 2);
-If (v > mid) add_edge(u, v, e, mid+1, r, id * 2 + 1);
-}
-
-Void traverse(DSU &graph, int l, int r, int id){
-	Int current_version = graph.history.size();
-	for(pair<int,int> e: segments[id])
-		graph.join_set(e.first, e.second);
-	If (l == r){
-		Ans[l] = n - graph.history.size();
-		while(graph.history.size() > current_version)
-			graph.roll_back();
-		return;
-}
-Int mid = (l + r) >> 1;
-traverse(graph, l, mid, id * 2);
-traverse(graph, mid+1, r, id * 2 + 1);
-
-	while(graph.history.size() > current_version)
-		graph.roll_back();
-}
-
-
-Void solve(){
-	for(auto i: edges){
-		add_edge(i[2], i[3], make_pair(i[0], i[1]), 1, n, 1);
-}
-
-DSU graph(n);
-traverse(graph, 1, n, 1);
-} */
-
-
-
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    // disjoint_sets_union dsu(10);
-    // dsu.unite(1,2);
-    // dsu.rollback();
-    // cout << dsu.root(2);
+    cin >> n >> k;
+    for(int i=1; i<=n; ++i) cin >> a[i];
+    soupfull::solve();
     return 0; 
 
 } 
