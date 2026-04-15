@@ -116,6 +116,11 @@ inline void bfs_ans(queue<int>&q) {
         }
     }
 }
+namespace cookedsoup{
+    void solve() {
+        
+    }
+}
 int main() {
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
     //file("valley")
