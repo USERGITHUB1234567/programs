@@ -1,5 +1,5 @@
 /**/ 
-#pragma GCC optimize("O3") 
+//#pragma GCC optimize("O3") 
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -127,14 +127,75 @@ namespace soup2{
         cout << ans << '\n' << res;
     }
 }
+namespace cookedsoup{
+    const long long inf=4e18;
+    long long need[maxn],cover[maxn];
+    bool park[maxn];
+    int cnt=0;
+    long long m;
+    inline void dfs(int u, int p) {
+        need[u]=0;cover[u]=inf;
+        for(auto[v,w]:adj[u]) {
+            if(v==p) continue;
+            dfs(v,u);
+            if(need[v]!=-1) {
+                if(need[v]+w>m) {++cnt;park[v]=true;cover[u]=min(cover[u],w);}
+                else {
+                    need[u]=max(need[u],need[v]+w);
+                }
+            }
+            if(cover[v]!=inf) {
+                cover[u]=min(cover[u],cover[v]+w);
+            }
+        }
+        if(need[u]!=-1 && cover[u]!=inf && need[u]+cover[u]<=m) {need[u]=-1;}
+    }
+    inline bool check(long long mid) {
+        m=mid;
+        cnt=0;
+        for(int i=1; i<=n; ++i) park[i]=false;
+        dfs(1,0);
+        //cout << cnt << ' ' << k << '\n';
+        if(need[1]!=-1) {
+            ++cnt;
+            park[1]=true;
+        }
+        return cnt<=k;
+    }
+    void solve() {
+        for(int i=1; i<=n; ++i) {need[i]=0,cover[i]=inf;}
+        long long l=0,r=1e18;
+        while(l<r) {
+            long long mid=(l+r)>>1;
+            if(check(mid)) r=mid;
+            else l=mid+1;
+        }if(!check(l)) check(r);
+        vector<int>ans;
+        for(int i=1; i<=n || cnt<k; ++i) {
+            if(park[i]) ans.pb(i);
+            else {
+                if(cnt<k) {
+                    ++cnt;
+                    ans.pb(i);
+                }
+            }
+            //cout << park[i];
+        }
+        cout << l << '\n';
+        for(int i=0; i<ans.size(); ++i) {
+            cout << ans[i] << (i==ans.size()-1?"":" ");
+        }
+    }
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("park")
+    //file("park")
     cin >> n >> k;
     for(int i=1,a,b,w; i<n; ++i) {cin >> a >> b >> w;adj[a].pb({b,w});adj[b].pb({a,w});}
-    if(n<=23) soup1::solve();
+    //if(n<=23) soup1::solve();
     // cout << '\n';
     // soup2::solve();
+    cookedsoup::solve();
     return 0; 
 
 } 
