@@ -16,12 +16,12 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320; 
 namespace mathematics{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
     inline ll __logarit(ll k, ll n){ll res=0;while(n>0){n/=k;++res;}return res;} 
-    inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e>0) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
+    inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
     inline int maxi(int a, int b) {return (a>b?a:b);} 
     inline int mini(int a, int b) {return (a<b?a:b);} 
     inline ll maxill(ll a, ll b) {return (a>b?a:b);} 
@@ -41,44 +41,28 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,l,r,pre[maxn][26];
-string s;
+inline long long decimal_modexp(long long b, long long e, long long m) {
+    long long res=1;
+    while(e) {
+        if(e%10) {
+            int t=e%10;
+            res=res*modexp(b,t,m)%m;
+            //for(int i=1; i<=t; ++i) {res=(res*b)%m;}
+            res%=m;
+        }
+        b=modexp(b,10,m);
+        //for(int i=1; i<=10; ++i) {b=(b*b)%m;}
+        b%=m;
+        e/=10;
+    }
+    return res%m;
+}
+inline long long normalexp(long long b, long long e, long long m) { long long t=b;for(int i=1; i<e; ++i) {b=(b*t)%mod;}return b;}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> l >> r >> s;
-    for(int i=0; i<n; ++i) {
-        char c=s[i];
-        for(int j=0; j<26; ++j) pre[i+1][j]=pre[i][j];
-        pre[i+1][c-'a']=pre[i][c-'a']+1;
-        
-    }
-    unordered_map<int,int>ump[26];
-    long long ans=0;
-    for(int i=1; i<=n; ++i) {
-        //int t=pre[i][s[i-1]-'a'];
-        char c=s[i-1];
-        int t=0,ql,qr;
-        if(i-l>=1) {
-            ql=pre[i-l][c-'a'];
-        }else ql=0;
-        if(i-r-1>=1){
-            qr=pre[i-r-1][c-'a'];
-        }else qr=0;
-        //cout << ql << ' ' << qr << '\n';
-        ans+=ql-qr;
-    }
-    cout << ans;
+    long long n,m;cin >> n >> m;
+    cout << decimal_modexp(n,m,1000000000) << ' ' << modexp(n,m,1000000000) << ' ' << normalexp(n,m,1000000000);
     return 0; 
 
 } 
 /**/
-/*
-6 2 4
-aabcba
-
-9 3 6
-aaaaaaaaa
-
-10 2 6
-aabbccaabb
-*/

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace mathematics{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -41,44 +41,39 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,l,r,pre[maxn][26];
-string s;
+int n;
+long long a[maxn],pre[maxn],suf[maxn],mxp[maxn],mxs[maxn];
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> l >> r >> s;
-    for(int i=0; i<n; ++i) {
-        char c=s[i];
-        for(int j=0; j<26; ++j) pre[i+1][j]=pre[i][j];
-        pre[i+1][c-'a']=pre[i][c-'a']+1;
-        
+    cin >> n;
+    for(int i=1; i<=n; ++i) cin >> a[i];
+    long long cur=a[1],ans=LLONG_MAX,t1=0,t2=0;
+    for(int i=2; i<=n; ++i) {
+        if(a[i]<=cur) {
+            pre[i]=pre[i-1]+cur-a[i]+1;
+            ++cur;
+        }
+        else {pre[i]=pre[i-1],cur=a[i];}
+        mxp[i]=max(mxp[i-1],pre[i]-pre[i-1]);
     }
-    unordered_map<int,int>ump[26];
-    long long ans=0;
+    cur=a[n];
+    for(int i=n-1; i>=1; --i) {
+        if(a[i]<=cur) {
+            suf[i]=suf[i+1]+cur-a[i]+1;
+            ++cur;
+        }else {suf[i]=suf[i+1],cur=a[i];}
+        mxs[i]=max(mxs[i-1],suf[i]-suf[i+1]);
+    }
+    //long long ans=LLONG_MAX;
+    // for(int i=1; i<=n; ++i) cout << pre[i] << ' ';
+    // cout << '\n';
+    // for(int i=1; i<=n; ++i) cout << suf[i] << ' ';
+
     for(int i=1; i<=n; ++i) {
-        //int t=pre[i][s[i-1]-'a'];
-        char c=s[i-1];
-        int t=0,ql,qr;
-        if(i-l>=1) {
-            ql=pre[i-l][c-'a'];
-        }else ql=0;
-        if(i-r-1>=1){
-            qr=pre[i-r-1][c-'a'];
-        }else qr=0;
-        //cout << ql << ' ' << qr << '\n';
-        ans+=ql-qr;
+        ans=min(ans,max(mxp[i],mxs[i]));
     }
     cout << ans;
     return 0; 
 
 } 
 /**/
-/*
-6 2 4
-aabcba
-
-9 3 6
-aaaaaaaaa
-
-10 2 6
-aabbccaabb
-*/

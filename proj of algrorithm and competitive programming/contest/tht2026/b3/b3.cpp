@@ -114,8 +114,50 @@ namespace soup2{
         }
     }
 }
+struct matrix{
+    ll a[2][2];
+    matrix() {memset(a,0,sizeof(a));}
+};
+inline matrix mul(matrix a, matrix b) {
+    matrix c;
+    for(int i=0; i<2; ++i) {
+        for(int j=0; j<2; ++j) {
+            for(int k=0; k<2; ++k) {
+                c.a[i][j]=(c.a[i][j]+a.a[i][k]*b.a[k][j])%mod;
+            }
+        }
+    }
+    return c;
+}
+inline matrix powmod(matrix b, long long e, long long m) {
+    matrix res;
+    res.a[0][0]=1,res.a[1][1]=1;
+    while(e) {
+        if(e&1) {res=mul(res,b);}
+        b=mul(b,b);
+        e>>=1;
+    }
+    return res;
+}
 namespace soupfull {
-    
+    void solve() {
+        for(int q=1; q<=t; ++q) {
+            auto[n,m]=query[q];
+            matrix mat;
+            m%=mod;
+            mat.a[0][1]=1;
+            mat.a[1][0]=m-1;
+            mat.a[1][1]=m-1;
+            if(n==1) {cout << m%mod << '\n';continue;}
+            if(n==2) {
+                cout << (m*m)%mod << '\n';
+                continue;
+            }
+            mat=powmod(mat,n-2,mod);
+            long long ans=(m*mat.a[1][0])%mod+(((m*m)%mod)*mat.a[1][1])%mod;
+            cout << ans%mod << '\n';
+        }
+    }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
@@ -129,9 +171,11 @@ int main(int argc, char** argv) {
     // soup2::solve();
     // if(soup1::check) soup1::solve();
     // else soupfullnotproven::solve();
-    soup1::solve();
-    cout << '\n';
-    soup2::solve();
+    // soup1::solve();
+    // cout << '\n';
+    // soup2::solve();
+    // cout << '\n';
+    soupfull::solve();
     return 0; 
 
 } 
