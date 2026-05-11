@@ -1,0 +1,191 @@
+#pragma GCC optimize("O3")
+#include <bits/stdc++.h>
+#define fi first
+#define se second
+#define file(n) freopen(n".inp", "r", stdin); freopen(n".out", "w", stdout);
+#define all(x) x.begin(), x.end()
+using namespace std;
+typedef long long ll;
+const int maxn=100005,maxl=20,inf=INT_MAX;
+int n,q,p[maxn][maxl],d[maxn],a[maxn],logn;
+vector<int>adj[maxn];
+struct segtree
+{
+    pair<int,int>st[4*maxn];
+    pair<int,int>merge(pair<int,int>a, pair<int,int>b)
+    {
+        if(a.fi==b.fi) return{a.fi,b.se+a.se};
+        else if(a.se<b.se) return {b.fi,b.se};
+        else return {a.fi,a.se};
+    }
+    void build(int id, int l, int r)
+    {
+        if(l==r) {
+            st[id].fi=a[l];
+            return;
+        }
+        int m=(l+r)>>1;
+        build(id<<1,l,m);
+        build(id<<1|1,m+1,r);
+        st[id]=merge(st[id<<1],st[id<<1|1]);
+    }
+    pair<int,int> query(int id, int l, int r, int i, int j)
+    {
+        if(l>j || r<i) return {0,0};
+        if(l>=i && r<=j) return st[id];
+        int m=(l+r)>>1;
+        return merge(query(id<<1,l,m,i,j),query(id<<1|1,m+1,r,i,j));
+    }
+}seg;
+void dfslca(int u, int pa)
+{
+    for(int v:adj[u]) {
+        if(v==pa) continue;
+        d[v]=d[u]+1;
+        p[v][0]=u;
+        dfslca(v,u);
+    }
+}
+void setuplca()
+{
+    for(logn; (1<<logn)<=n; logn++);
+    for(int j=1; j<=logn; j++) {
+        for(int i=1; i<=n; i++) p[i][j]=p[p[i][j-1]][j-1];
+    }
+}
+int lca(int u, int v)
+{
+    if(d[u]<d[v]) swap(u,v);
+    for(int i=logn; i>=0; i--) {
+        if(d[p[u][i]]>=d[v]) u=p[u][i];
+    }
+    if(u==v) return u;
+    for(int i=logn; i>=0; i--) {
+        if(p[u][i]!=p[v][i]) {
+            u=p[u][i];
+            v=p[v][i];
+        }
+    }
+    return p[u][0];
+}
+void soup3()
+{
+    while(q--) {
+        int u,v;
+        cin >> u >> v;
+        cout << d[u]+d[v]-2*d[lca(u,v)] << "\n";
+    }
+}
+int cal(vector<int>a)
+{
+    /*map<int,int>mp;
+    vector<int> dif;
+    for(int i=1; i<a.size(); i++) dif.push_back(a[i]-a[i-1]);
+    for(int i=0; i<dif.size(); i++) {
+        mp[dif[i]]++;
+        int t=dif[i];
+        for(int j=i-1; j>=0; j--) {
+            t+=dif[j];
+            mp[t]++;
+        }
+    }
+    int mx=0;
+    for(auto x:mp) {
+        mx=max(mx,x.se);
+        cout << x.first << " " << x.second << "\n";
+    }
+    return mx+1;*/
+    bool kt=true;
+    vector<int>dif;
+    for(int i=1; i<a.size(); i++) {
+        dif.push_back(a[i]-a[i-1]);
+    }
+    int res=0,d=0;
+    for(int i=0; i<dif.size(); i++) {
+        //cout << dif[i] << " ";
+        if(i==0) {
+            d++;
+            continue;
+        }
+        if(dif[i]!=dif[i-1]) {
+            res=max(d,res);
+            d=1;
+        }
+        else d++;
+    }
+    res=max(res,d);
+    return res+1;
+}
+vector<int>res;
+void dfs1(int u, int ta, int pa, vector<int>pr)
+{
+    pr.push_back(a[u]);
+    if(u==ta) {
+        res=pr;
+        return;
+    }
+    for(int v:adj[u]) {
+        if(v==pa) continue;
+        dfs1(v,ta,u,pr);
+    }
+}
+void soup1()
+{
+    while(q--) {
+        int u,v;
+        cin >> u >> v;
+        vector<int>bl;
+        dfs1(u,v,0,bl);
+        //for(int i:res) cout << i << " ";
+        cout << cal(res) << "\n";
+    }
+}
+void soup4()
+{
+
+}
+int main()
+{
+    ios_base::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
+    file("aptree")
+    cin >> n;
+    bool kts3=true;
+    for(int i=1; i<=n; i++) {
+        cin >> a[i];
+        if(i>1 && a[i]!=a[i-1]) kts3=false;
+    }
+    for(int i=1; i<n; i++) {
+        int u,v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    cin >> q;
+    dfslca(1,0);
+    setuplca();
+    if(kts3) {
+        soup3();
+        return 0;
+    }
+    soup1();
+}
+/*
+10
+1 3 6 3 5 4 5 4 6 4
+1 2
+2 3
+1 4
+4 5
+6 3
+7 3
+8 5
+9 5
+10 7
+5
+9 10
+6 5
+8 4
+7 2
+6 8
+
+*/
