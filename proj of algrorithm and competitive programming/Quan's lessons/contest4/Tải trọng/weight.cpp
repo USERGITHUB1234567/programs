@@ -16,7 +16,8 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320;
+const int INF = 1000000000;
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,67 +46,104 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
+struct edge{int u,v,w;}ed[maxn];
+int n,m,q,up[maxn][20],d[maxn],mn[maxn][20],logn;
+vector<pair<int,int>>adj[maxn];
+void dfs(int u, int p, int w0) {
+    up[u][0]=p;
+    mn[u][0]=w0;
+    for(auto [v,w]:adj[u]) {
+        if(v==p) continue;
+        d[v]=d[u]+1;
+        dfs(v,u,w);
+    }
+}
+class disjoint_set_union{
     private:
-        long long st[maxn<<2],laz[maxn<<2];
+        int p[maxn];
     public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+        disjoint_set_union(int size) {
+            for(int i=1; i<=size; ++i) p[i]=i;
         }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
+        bool check(int u, int v) {return root(u)==root(v);}
+        int root(int x) {
+            if(p[x]!=x) p[x]=root(p[x]);
+            return p[x];
         }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+        void unite(int x, int y) {
+            x=root(x), y=root(y);
+            if(x!=y) p[x]=y;
         }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
+};
+int lca(int u, int v) {
+    if(d[u]<d[v]) swap(u,v);
+    int res=INF;
+    int diff=d[u]-d[v];
+    for(int i=0; diff; ++i) {
+        if(diff&1) {
+            res=min(res,mn[u][i]);
+            u=up[u][i];
         }
-}seg;
+        diff>>=1;
+    }
+    if(u==v) return res==INF?0:res;
+    for(int i=logn; i>=0; --i) {
+        if(up[u][i]!=up[v][i]) {
+            res=min({res,mn[u][i],mn[v][i]});
+            u=up[u][i]; v=up[v][i];
+        }
+    }
+    res=min({res,mn[u][0],mn[v][0]});
+    return res==INF?0:res;
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
+    cin >> n >> m;
+    for(int i=1; i<=m; ++i) cin >> ed[i].u >> ed[i].v >> ed[i].w;
+    sort(ed+1, ed+m+1, [](const edge &a, const edge &b) {return a.w>b.w;});
+    disjoint_set_union dsu(n);
+    for(int i=1; i<=m; ++i) {
+        int u=ed[i].u, v=ed[i].v, w=ed[i].w;
+        if(!dsu.check(u,v)) {
+            dsu.unite(u,v);
+            adj[u].emplace_back(v,w);
+            adj[v].emplace_back(u,w);
+        }
+    }
+    for(int i=1; i<=n; ++i) {
+        d[i]=-1;
+        for(int j=0; j<20; ++j) {
+            up[i][j]=0;
+            mn[i][j]=INF;
+        }
+    }
+    d[0]=0;dfs(1,0,INF);
+    logn=log2(n)+1;
+    for(int j=1; j<=logn; ++j) {
+        for(int i=1; i<=n; ++i) {
+            up[i][j]=up[up[i][j-1]][j-1];
+            mn[i][j]=min(mn[i][j-1],mn[up[i][j-1]][j-1]);
+        }
+    }
     cin >> q;
     while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
-        }
+        int u, v;
+        cin >> u >> v;
+        cout << lca(u,v) << "\n";
     }
     return 0; 
 
 } 
 /**/
+/*
+4 5
+1 2 10
+2 4 1
+1 3 5
+3 4 3
+1 4 2
+3
+1 4
+1 2
+2 3
+*/

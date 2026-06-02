@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=2003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,67 +45,101 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+int n,k;
+pair<int,int>barri[maxn];
+namespace souptrau{
+    vector<pair<int,int>>blank;
+    inline int calculate(int x1, int x2) {
+        vector<pair<int,int>>event;
+        for(auto[s,e]:blank) {
+            event.pb({(s<<1)-x1,1});
+            event.pb({(e<<1)-x1,-1});
+            event.pb({(s<<1)-x2,1});
+            event.pb({(e<<1)-x2,-1});
         }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
-        }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
+        sort(all(event));
+        int cur=event[0].fi,t=0,ans=0;
+        for(int i=0; i<event.size(); ++i) {
+            //cerr << event[i].fi << ' ';
+            t+=event[i].se;
+            if(t==1 && event[i].se==1) cur=event[i].fi;
+            if(!t) {
+                ans+=max(0,event[i].fi-cur);
+                cur=1e9;
             }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
         }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
+        return ans;
+    }
+    void solve() {
+        for(int i=1; i<k; ++i) blank.pb({barri[i].se,barri[i+1].fi});
+        if(barri[1].fi>0) blank.insert(blank.begin(),{0,barri[1].fi});
+        if(barri[k].se<n) blank.pb({barri[k].se,n});
+        int ans=0;
+        for(int i=0; i<=n; ++i) {
+            for(int j=i+1; j<=n; ++j) ans=max(ans,calculate(i,j));
         }
-}seg;
+        cout << ans;
+        //cout << calculate(0,3);
+    }
+}
+namespace soup3{
+    vector<pair<int,int>>blank;
+    inline int calculate(int x1, int x2) {
+        vector<pair<int,int>>event;
+        for(auto[s,e]:blank) {
+            event.pb({(s<<1)-x1,1});
+            event.pb({(e<<1)-x1,-1});
+            event.pb({(s<<1)-x2,1});
+            event.pb({(e<<1)-x2,-1});
+        }
+        sort(all(event));
+        int cur=event[0].fi,t=0,ans=0;
+        for(int i=0; i<event.size(); ++i) {
+            //cerr << event[i].fi << ' ';
+            t+=event[i].se;
+            if(t==1 && event[i].se==1) cur=event[i].fi;
+            if(!t) {
+                ans+=max(0,event[i].fi-cur);
+                cur=1e9;
+            }
+        }
+        return ans;
+    }
+    void solve() {
+        for(int i=1; i<k; ++i) blank.pb({barri[i].se,barri[i+1].fi});
+        if(barri[1].fi>0) blank.insert(blank.begin(),{0,barri[1].fi});
+        if(barri[k].se<n) blank.pb({barri[k].se,n});
+        int ans=0;
+        // for(int i=0; i<=n; ++i) {
+        //     for(int j=i+1; j<=n; ++j) ans=max(ans,calculate(i,j));
+        // }
+        for(int i=0; i<=n; ++i) ans=max(ans,calculate(0,i));
+        cout << ans;
+        //cout << calculate(0,3);
+    }
+}
+namespace soupfull {
+    void solve() {
+        
+    }
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
-        }
-    }
+    file("roai")
+    cin >> n >> k;
+    for(int i=1; i<=k; ++i) cin >> barri[i].fi >> barri[i].se;
+    soup3::solve();
     return 0; 
 
 } 
 /**/
+/*
+3 1
+0 1
+
+5 2
+1 2
+3 5
+
+
+*/

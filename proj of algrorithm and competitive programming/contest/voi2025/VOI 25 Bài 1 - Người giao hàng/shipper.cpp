@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,66 +45,68 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
-        }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
-int main(int argc, char** argv) { 
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
+int n,k,up[maxn][20],d[maxn],logn;
+long long w[maxn],mx[maxn][20];
+vector<int>adj[maxn];
+pair<int,int>query[maxn];
+void dfs(int u, int p) {
+    for(int v:adj[u]) {
+        if(v==p) continue;
+        d[v]=d[u]+1;
+        up[v][0]=u;
+        mx[v][0]=max(w[v],w[u]);
+        dfs(v,u);
+    }
+}
+long long maxlca(int u, int v) {
+    if(d[u]<d[v]) swap(u,v);
+    long long res=max(w[u],w[v]);
+    for(int i=logn; i>=0; --i) {
+        if(d[up[u][i]]>=d[v]) {res=max(res,mx[u][i]);u=up[u][i];}
+    }
+    if(u==v) return res;
+    for(int i=logn; i>=0; --i) {
+        if(up[u][i]!=up[v][i]) {
+            res=max({res,mx[u][i],mx[v][i]});
+            u=up[u][i];
+            v=up[v][i];
         }
     }
+    return max({res,mx[u][0],mx[v][0]});
+}
+namespace soupfull {
+    long long pre[maxn];
+    void solve() {
+        memset(pre,-1,sizeof(pre));
+        pre[1]=0;
+        for(int t=1; t<=k; ++t) {
+            auto[u,v]=query[t];
+            if(pre[u]==-1) continue;
+            pre[v]=max(pre[v],pre[u]+maxlca(u,v));
+        }
+        cout << max(0ll,*max_element(pre+1,pre+1+n));
+    }
+}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    file("ship")
+    cin >> n;for(int i=1; i<=n; ++i) cin >> w[i];
+    for(int i=1,u,v; i<n; ++i) {
+        cin >> u >> v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    cin >> k;for(int i=1; i<=k; ++i) cin >> query[i].fi >> query[i].se;
+    mx[1][0]=w[1];
+    dfs(1,0);
+    logn=log2(n)+1;
+    for(int j=1; j<=logn; ++j) {
+        for(int i=1; i<=n; ++i) {
+            up[i][j]=up[up[i][j-1]][j-1];
+            mx[i][j]=max(mx[i][j-1],mx[up[i][j-1]][j-1]);
+        }
+    }
+    soupfull::solve();
     return 0; 
 
 } 

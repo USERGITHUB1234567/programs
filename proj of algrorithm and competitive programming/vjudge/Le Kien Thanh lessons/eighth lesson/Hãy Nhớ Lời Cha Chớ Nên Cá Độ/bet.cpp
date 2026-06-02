@@ -45,67 +45,46 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
+int n;
+double a[maxn],b[maxn];
+namespace soupfull {
+    double preb[maxn];
+    inline double f(double ta, int m, int i) {return min(ta-m-i,preb[i]-m-i);}
+    inline double ternary_search_civet(double ta, int m) {
+        int l=1,r=n;
+        while(l<r) {
             int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+            if(f(ta,m,mid)>f(ta,m,mid+1)) r=mid;
+            else l=mid+1;
         }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
+        return f(ta,m,l);
+    }
+    void solve() {
+        sort(a+1,a+1+n,greater<double>());
+        sort(b+1,b+1+n,greater<double>());
+        for(int i=1; i<=n; ++i) preb[i]=preb[i-1]+b[i];
+        double ans=0,cur=0;
+        for(int i=1; i<=n; ++i) {
+            cur+=a[i];
+            ans=max(ans,ternary_search_civet(cur,i));
         }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
+        cout << setprecision(4) << fixed << ans;
+        //cout << f(3.5,2,1);
+    }
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
-        }
-    }
+    cin >> n;for(int i=1; i<=n; ++i) cin >> a[i] >> b[i];
+    soupfull::solve();
     return 0; 
 
 } 
 /**/
+/*
+4
+1.4 3.7
+1.2 2
+1.6 1.4
+1.9 1.5
+
+*/

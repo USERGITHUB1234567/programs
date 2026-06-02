@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=500005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,66 +45,70 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
+int n,m,q;
+pair<int,int>conf[maxn],query[maxn];
+class disjoint_set_union{
     private:
-        long long st[maxn<<2],laz[maxn<<2];
+        int n;
+        vector<int>p;
     public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+        disjoint_set_union(int _n):n(_n) {
+            p.resize(n);
+            for(int i=1; i<n; ++i) p[i]=i;
         }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
+        inline int root(int u) {return (p[u]==u?u:p[u]=root(p[u]));}
+        inline void unite(int v,int u) {
+            u=root(u),v=root(v);
+            //if(u<v) swap(u,v);
+            if(u!=v) p[v]=u;
         }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
+        inline bool same(int u, int v) {return root(u)==root(v);}
+};
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
+    cin >> n >> m >> q;
+    for(int i=1; i<=m; ++i) cin >> conf[i].fi >> conf[i].se;
+    for(int i=1; i<=q; ++i) cin >> query[i].fi >> query[i].se;
+    vector<int>l(q+1,0),r(q+1,m);
+    int st=0;
+    {
+        disjoint_set_union dsu((n<<1)+3);
+        for(int i=m; i>=1; --i) {
+            auto[u,v]=conf[i];
+            if(dsu.same(u,v)) {st=i;break;}
+            dsu.unite(u,v+n);
+            dsu.unite(v,u+n);
         }
     }
+    for(int i=1; i<=q; ++i) l[i]=st;
+    while(true) {
+        int stop=true;
+        //cerr << 'a';
+        vector<vector<int>>bucket(m+1);
+        for(int i=1; i<=q; ++i) {
+            if(l[i]<r[i]) {
+                stop=false;
+                int mid=(l[i]+r[i])>>1;
+                bucket[mid].pb(i);
+            }
+        }
+        if(stop) break;
+        disjoint_set_union dsu((n<<1)+3);
+        for(int i=m; i>=st; --i) {
+            auto[u,v]=conf[i];
+            for(int j:bucket[i]) {
+                auto[a,b]=query[j];
+                if(dsu.same(a,b)) l[j]=i+1;
+                else r[j]=i;
+            }
+            if(i==0) continue;
+            dsu.unite(u,v+n);
+            dsu.unite(v,u+n);
+        }
+    }
+    //dsu.unite(conf[1].fi,conf[1].se);
+    //cout << dsu.same(query[2].fi,query[2].se);
+    for(int i=1; i<=q; ++i) cout << l[i] << '\n';
     return 0; 
 
 } 

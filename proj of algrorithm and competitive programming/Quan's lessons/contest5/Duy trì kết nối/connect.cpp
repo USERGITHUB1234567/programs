@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,67 +45,55 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
-        }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
+int n,m,p[maxn],sz[maxn];
+set<int>st[maxn];
+vector<int>adj[maxn];
+int root(int u) {return (p[u]==u?u:p[u]=root(p[u]));}
+int unite(int u, int v) {
+    u=root(u),v=root(v);
+    //if(u==v) return u;
+    if(u!=v) {
+        if(sz[u]<sz[v]) swap(u,v);
+        sz[u]+=sz[v];
+        p[v]=u;
+        if(st[u].size()<st[v].size()) swap(st[u],st[v]);
+        auto t=st[u].begin();
+        for(int x:st[v]) st[u].insert(t,x);
+        st[v].clear();
+    }
+    return u;
+}
+
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
-        }
+    cin >> n >> m;
+    for(int i=1,u,v; i<=m; ++i) {cin >> u >> v;adj[u].pb(v);adj[v].pb(u);}
+    for(int i=1; i<=n; ++i) {
+        p[i]=i;
+        sz[i]=1;
+        for(int j:adj[i]) {if(j>i)st[i].insert(j);}
     }
+    long long ans=0;
+    for(int i=1; i<=n; ++i) {
+        int u=root(i);
+        for(int v:adj[i]) {
+            if(v<i) u=unite(u,v);
+        }
+        while(!st[u].empty() && *st[u].begin()<=i) st[u].erase(st[u].begin());
+        ans+=st[u].size();
+        //cerr << ans << '\n';
+    }
+    cout << ans-m;
     return 0; 
 
 } 
 /**/
+/*
+7 6
+1 3
+2 4
+3 5
+1 4
+2 3
+7 1
+*/

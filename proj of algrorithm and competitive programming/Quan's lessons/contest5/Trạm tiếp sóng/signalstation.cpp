@@ -45,67 +45,51 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
-        }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
-            }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
+int n;
+struct point{int id;long long x,y;}p[maxn];
+struct edge{int u,v;long long w;};
+class disjoint_set_union{
+private:
+    int n;
+    vector<int>p;
+public:
+    disjoint_set_union(int _n):n(_n){p.resize(n+1);for(int i=1; i<=n; ++i)p[i]=i;}
+    inline int root(int u) {return (p[u]==u?u:p[u]=root(p[u]));}
+    inline void unite(int u, int v) {
+        u=root(u),v=root(v);
+        if(u!=v) p[v]=u;
+    }
+    inline bool same(int u,int v) {return root(u)==root(v);}
+};
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
-        }
+    cin >> n;
+    vector<edge>e;
+    e.reserve(n<<1);
+    for(int i=1; i<=n; ++i) {cin >> p[i].x >> p[i].y;p[i].id=i;}
+    sort(p+1,p+1+n,[&](point a, point b){return a.x<b.x;});
+    for(int i=1; i<n; ++i) {e.pb({p[i].id,p[i+1].id,abs(p[i].x-p[i+1].x)});}
+    sort(p+1,p+1+n,[&](point a, point b){return a.y<b.y;});
+    for(int i=1; i<n; ++i) {e.pb({p[i].id,p[i+1].id,abs(p[i].y-p[i+1].y)});}
+    sort(all(e),[&](edge a,edge b){return a.w<b.w;});
+    disjoint_set_union dsu(n);
+    long long ans=0;
+    for(auto[u,v,w]:e) {
+        //cerr << u << ' ' << v << ' ' << w << '\n';
+        if(dsu.same(u,v)) {continue;}
+        dsu.unite(u,v);ans+=w;
+        cerr << ans << '\n';
     }
+    cout << ans;
     return 0; 
 
 } 
 /**/
+/*
+5 
+4 9 
+9 5 
+0 2 
+7 1
+3 4
+*/

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=1003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,66 +45,97 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,q;
-class segmen_tree{
-    private:
-        long long st[maxn<<2],laz[maxn<<2];
-    public:
-        long long a[maxn];
-        void build(int id, int l, int r) {
-            if(l==r) {st[id]=a[l];return;}
-            int mid=(l+r)>>1;
-            build(id<<1,l,mid);
-            build(id<<1|1,mid+1,r);
-            st[id]=max(st[id<<1],st[id<<1|1]);
+int n,m,d[1003],p[maxn];
+vector<int>children[maxn];
+vector<pair<int,int>>adj[maxn];
+void dfs(int u) {
+    for(auto[v,w]:adj[u]) {
+        if(v==p[u]) continue;
+        d[v]=d[u]+1;
+        p[v]=u;
+        children[u].pb(v);
+        dfs(v);
+    }
+}
+int lca(int u, int v) {
+    if(d[u]<d[v]) swap(u,v);
+    while(d[u]>d[v]) u=p[u];
+    while(u!=v) {u=p[u],v=p[v];}
+    return u;
+}
+struct path{short id,child;};vector<path>passing[1003];
+struct lcapath{short id,u,v;int w;};vector<lcapath>lcap[1003];
+int val[1003][5003],f_arr[1003];
+void solve(int u) {
+    for(int c:children[u]) solve(c);
+    int k=children[u].size(),base=0;
+    //for(int c:children[u]) base+=fmax[c];
+    for(int c:children[u]) base+=f_arr[c];
+    vector<int>id(1003,-1);
+    for(int i=0; i<k; ++i) id[children[u][i]]=i;
+    int fm=1<<k;
+    vector<int>f(fm,0);
+    for(int mask=0; mask<fm; ++mask) {
+        for(int i=0; i<k; ++i) {
+            if(mask&(1<<i)) f[mask]=max(f[mask],f[mask^(1<<i)]);
         }
-        void down(int id, int l, int r) {
-            if(l==r || laz[id]==0) return;
-            long long t=laz[id];
-            st[id<<1]+=t;
-            st[id<<1|1]+=t;
-            laz[id<<1]+=t;
-            laz[id<<1|1]+=t;
-            laz[id]=0;
-        }
-        void update(int id, int l, int r, int i, int j, long long v) {
-            if(l>j || r<i) return;
-            if(l>=i && r<=j) {
-                st[id]+=v;
-                laz[id]+=v;
-                return;
+        for(auto& p:lcap[u]) {
+            int m=0,add=p.w;
+            if(p.u!=-1) {
+                int i=id[p.u];
+                m|=(1<<i);
+                add+=val[p.u][p.id]-f_arr[p.u];
             }
-            down(id,l,r);
-            int mid=(l+r)>>1;
-            if(i<=mid) update(id<<1,l,mid,i,j,v);
-            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
-            st[id]=max(st[id<<1],st[id<<1|1]);
-        }
-        long long query(int id, int l, int r, int i, int j) {
-            down(id,l,r);
-            if(l>=i && r<=j) return st[id];
-            int mid=(l+r)>>1;
-            if(j<=mid) return query(id<<1,l,mid,i,j);
-            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
-            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
-        }
-}seg;
-int main(int argc, char** argv) { 
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
-    seg.build(1,1,n);
-    cin >> q;
-    while(q--) {
-        int ty;cin >> ty;
-        if(ty==1) {
-            int x,y,val;cin >> x >> y >> val;
-            seg.update(1,1,n,x,y,val);
-        }
-        else {
-            int l,r;cin >> l >> r;
-            cout << seg.query(1,1,n,l,r) << '\n';
+            if(p.v!=-1) {
+                int i=id[p.v];
+                m|=(1<<i);
+                add+=val[p.v][p.id]-f_arr[p.v];
+            }
+            if((mask&m)==m) f[mask]=max(f[mask],f[mask^m]+add);
         }
     }
+    f_arr[u]=base+f[fm-1];
+    for(auto& p:passing[u]) {
+        if(p.child==-1) val[u][p.id]=f_arr[u];
+        else {
+            int i=id[p.child],avail=(fm-1)^(1<<i);
+            val[u][p.id]=base-f_arr[p.child]+val[p.child][p.id]+f[avail];
+        }
+    }
+}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> m;
+    struct edge{int u,v,w;};
+    vector<edge>dirt;
+    long long t=0;
+    for(int i=0,u,v,w; i<m; ++i) {
+        cin >> u >> v >> w;
+        if(w==0) adj[u].pb({v,w}),adj[v].pb({u,w});
+        else {dirt.pb({u,v,w});t+=w;}
+    }
+    dfs(1);
+    int p_id=0;
+    long long rem=0;
+    for(auto[u,v,w]:dirt) {
+        if((d[u]&1)!=(d[v]&1)) {rem+=w;continue;}
+        int l=lca(u,v),cur=u,cu=-1,cv=-1;
+        while(cur!=l) {
+            passing[cur].pb({(short)p_id,(short)cu});
+            cu=cur;
+            cur=p[cur];
+        }
+        cur=v;
+        while(cur!=l) {
+            passing[cur].pb({(short)p_id,(short)cv});
+            cv=cur;
+            cur=p[cur];
+        }
+        lcap[l].pb({(short)p_id,(short)cu,(short)cv,w});
+        ++p_id;
+    }
+    solve(1);
+    cout << t-f_arr[1];
     return 0; 
 
 } 
