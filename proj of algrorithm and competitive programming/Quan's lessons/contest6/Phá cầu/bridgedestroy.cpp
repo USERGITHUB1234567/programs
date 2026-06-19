@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -46,28 +45,150 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int t;
+namespace solver{
+    vector<int>bridge,vis;
+    vector<vector<pair<int,int>>>adj;
+    vector<vector<int>>tree;
+    vector<int>low,num,d,comp;
+    int n,m,ncomp=0,logn,timer=0;
+    
+    inline void dfs(int u, int p) {
+        low[u]=num[u]=++timer;
+        for(auto[v,i]:adj[u]) {
+            if(i==p) continue;
+            if(num[v]) low[u]=min(low[u],num[v]);
+            else {
+                dfs(v,i);
+                low[u]=min(low[v],low[u]);
+                if(low[v]>num[u]) bridge[i]=1;
+            }
         }
-        ans[i]=publish(r);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    
+    inline void dfs1(int u) {
+        comp[u]=ncomp;
+        for(auto[v,i]:adj[u]) {
+            if(!comp[v] && !bridge[i]) dfs1(v);
+        }
     }
-    answer(res);
+    
+    void bfs(int st) {
+        queue<int>q;
+        q.push(st);
+        vis[st]=1;
+        while(!q.empty()) {
+            int u=q.front();q.pop();
+            for(int v:tree[u]) {
+                if(vis[v]) continue;
+                d[v]=d[u]+1;
+                q.push(v);
+                vis[v]=1;
+            }
+        }
+    }
+    
+    void solve(int _n, int _m, vector<pair<int,int>>&e) {
+        n=_n,m=_m;
+        ncomp=0;
+        timer=0;
+        int ans=0;
+        
+        bridge.assign(m+1,0);
+        adj.assign(n+1, {});
+        low.assign(n+1,0);
+        num.assign(n+1,0);
+        comp.assign(n+1,0);
+        
+        for(int i=0; i<e.size(); ++i) {
+            auto[u,v]=e[i];
+            adj[u].pb({v,i+1});
+            adj[v].pb({u,i+1});
+        } 
+        
+        for(int i=1; i<=n; ++i) {
+            if(!num[i]) dfs(i,0);
+        }
+        for(int i=1; i<=n; ++i) {
+            if(!comp[i]) {++ncomp;dfs1(i);}
+        }
+        
+        if(ncomp==1) {
+            cout << 0 << '\n';
+            return;
+        }
+        
+        tree.assign(ncomp+1, {});
+        d.assign(ncomp+1,0);
+        vis.assign(ncomp+1,0);
+        
+        for(int i=1; i<=e.size(); ++i) {
+            if(bridge[i]) {
+                ++ans;
+                auto[u,v]=e[i-1];
+                u=comp[u],v=comp[v];
+                tree[u].pb(v);
+                tree[v].pb(u);
+            }
+        }
+        
+        int p1=1, p2=1, mx=0;
+        
+        bfs(p1);
+        for(int i=1; i<=ncomp; ++i) {
+            if(d[i]>mx) {
+                p2=i;
+                mx=d[i];
+            }
+        }
+        
+        d.assign(ncomp+1,0);
+        vis.assign(ncomp+1,0);
+        
+        bfs(p2);
+        mx=0;
+        for(int i=1; i<=ncomp; ++i) {
+            if(d[i]>mx) {
+                p1=i;
+                mx=d[i];
+            }
+        }
+        
+        cout << ans-mx << '\n';
+    }
 }
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> t;
+    while(t--) {
+        int n,m;
+        cin >> n >> m;
+        vector<pair<int,int>>e(m);
+        for(int i=1,u,v; i<=m; ++i) {
+            cin >> u >> v;
+            e[i-1]={u,v};
+        }
+        solver::solve(n,m,e);
+    }
+    return 0; 
+
+} 
 /**/
+/*
+1
+7 7
+1 2
+2 3
+3 1
+3 4
+4 5
+4 6
+6 7
+
+
+1
+3 3
+1 2
+2 3
+3 1
+*/

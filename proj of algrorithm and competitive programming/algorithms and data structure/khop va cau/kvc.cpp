@@ -68,6 +68,7 @@ int main() {
     }
     if(ncut!=0) cout << "\n";
     for(int i=1; i<=n; i++) {
+        //cerr << i << ' ' << low[i] << ' ' << num[i] << '\n';
         if(par[i]!=-1 && low[i]==num[i]) bridge[++nbr]={min(par[i],i),max(par[i],i)};
     }
     sort(bridge+1,bridge+nbr+1);

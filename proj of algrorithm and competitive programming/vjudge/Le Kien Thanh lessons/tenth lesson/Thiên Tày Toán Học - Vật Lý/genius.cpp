@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=4003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,43 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+char grid[maxn][maxn];
+int h,w,ans=0,dx[4]={0,1,0,-1},dy[4]={-1,0,1,0};
+bool vis[maxn][maxn];
+inline char switching(char t) {if(t=='F') return 'R';return 'F';}
+inline void bfs() {
+    char cur=grid[1][1];
+    queue<pair<int,int>>q,tmp;
+    q.push({1,1});
+    vis[1][1]=true;
+    do{
+        while(!q.empty()) {
+            auto[x,y]=q.front();q.pop();
+            vis[x][y]=true;
+            //cerr << x << ' ' << y << '\n';
+            for(int i=0,u,v; i<4; ++i)  {
+                u=x+dx[i],v=y+dy[i];
+                if(u>h || u<1 || v>w || v<1 || grid[u][v]=='.' || vis[u][v]) continue;
+                if(grid[u][v]!=cur) tmp.push({u,v});
+                else if(grid[u][v]==cur) {
+                    vis[u][v]=true;
+                    q.push({u,v});
+                }
+            }
         }
-        ans[i]=publish(r);
-    }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
-    }
-    answer(res);
+        ++ans;
+        if(tmp.empty()) break;
+        swap(q,tmp);
+        cur=switching(cur);
+    }while(true);
 }
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> h >> w;
+    for(int i=1; i<=h; ++i) for(int j=1; j<=w; ++j) cin >> grid[i][j];
+    bfs();
+    cout << ans;
+    return 0; 
+
+} 
 /**/

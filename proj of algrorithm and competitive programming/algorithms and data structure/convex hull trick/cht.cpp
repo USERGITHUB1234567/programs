@@ -11,10 +11,10 @@ using namespace std;
 typedef long long ll;
 const int maxn=100005;
 struct cht {
-    pair<int,int>lines[maxn];
-    vector<pair<int,int>>hull;
+    pair<long long,long long>lines[maxn];
+    vector<pair<long long,long long>>hull;
     bool cmp(const pair<int,int>& l1,const pair<int,int>& l2) {return (l1.fi<l2.fi) || (l1.fi==l2.fi && l1.se<l2.se);}
-    bool bad(const pair<int,int>& l1,const pair<int,int>& l2,const pair<int,int>& l3) {return (l3.se-l1.se)*(l2.fi-l1.fi)>=(l2.se-l1.se)*(l3.fi-l1.fi);}
+    bool bad(const pair<int,int>& l1,const pair<int,int>& l2,const pair<int,int>& l3) {return (l3.se-l1.se)*(l2.fi-l1.fi)<=(l2.se-l1.se)*(l3.fi-l1.fi);}
     void add(pair<int,int>&l) {
         if(hull.size() && hull.back().fi==l.fi && hull.back().se<=l.se) return;
         if(hull.size() && hull.back().fi==l.fi && hull.back().se>l.se) hull.pop_back();

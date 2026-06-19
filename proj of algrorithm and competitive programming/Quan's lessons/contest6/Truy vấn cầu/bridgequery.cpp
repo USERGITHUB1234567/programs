@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -46,28 +45,86 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int n,m,q,low[maxn],num[maxn],ncomp=0,timer=0,comp[maxn],dep[maxn],up[maxn][20],logn;
+vector<pair<int,int>>adj[maxn];
+vector<int>tree[maxn];
+bool bridge[maxn];
+pair<int,int>edge[maxn];
+inline void dfs(int u, int p) {
+    num[u]=low[u]=++timer;
+    for(auto[v,i]:adj[u]) {
+        if(v==p) continue;
+        if(num[v]) low[u]=min(low[u],num[v]);
+        else {
+            dfs(v,u);
+            low[u]=min(low[u],low[v]);
+            if(low[v]>num[u]) bridge[i]=true;
         }
-        ans[i]=publish(r);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
-    }
-    answer(res);
 }
+inline void dfs1(int u) {
+    comp[u]=ncomp;
+    for(auto[v,i]:adj[u]) {
+        if(!bridge[i] && !comp[v]) dfs1(v);
+    }
+}
+inline void dfslca(int u, int p) {
+    for(int v:tree[u]) {
+        if(v==p) continue;
+        up[v][0]=u;
+        dep[v]=dep[u]+1;
+        dfslca(v,u);
+    }
+}
+inline int lca(int u, int v) {
+    if(dep[u]<dep[v]) swap(u,v);
+    for(int i=logn; i>=0; --i) {
+        if(dep[up[u][i]]>=dep[v]) u=up[u][i];
+    }
+    if(u==v) return u;
+    for(int i=logn; i>=0; --i) {
+        if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
+    }
+    return up[u][0];
+}
+inline int dist(int u, int v) {return dep[u]+dep[v]-(dep[lca(u,v)]<<1);}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> m >> q;
+    for(int i=1,u,v; i<=m; ++i) {
+        cin >> u >> v;
+        adj[u].pb({v,i});
+        adj[v].pb({u,i});
+        edge[i]={u,v};
+    }
+    dfs(1,0);
+    for(int i=1; i<=n; ++i) {
+        if(!comp[i]) {++ncomp;dfs1(i);}
+    }
+    for(int i=1; i<=m; ++i) {
+        if(bridge[i]) {
+            auto[u,v]=edge[i];
+            u=comp[u],v=comp[v];
+            tree[u].pb(v);
+            tree[v].pb(u);
+        }
+    }
+    dfslca(1,0);
+    logn=log2(n)+1;
+    for(int j=1; j<=logn; ++j) {
+        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
+    }
+    while(q--) {
+        int a,b,c,d;cin >> a >> b >> c >> d;
+        a=comp[a],b=comp[b],c=comp[c],d=comp[d];
+        if(a==b) {cout << dist(c,d) << '\n';continue;}
+        int l[4]={lca(a,c),lca(a,d),lca(b,c),lca(b,d)};
+        sort(l,l+4,[](int u, int v) {return dep[u]<dep[v];});
+        int l1=l[2],l2=l[3],inter=0,ans=dist(c,d);
+        if(dep[l1]>=max(dep[lca(a,b)],dep[lca(c,d)])) inter=dist(l1,l2);
+        cout << ans-inter << '\n';
+    }
+    return 0; 
+
+} 
 /**/

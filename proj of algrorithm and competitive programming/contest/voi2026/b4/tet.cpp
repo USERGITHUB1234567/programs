@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,70 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int n,q,a[maxn],p[maxn];
+long long res[maxn];
+bool active[maxn];
+class disjoint_set_union{
+    private:
+        int n;
+        vector<int>p;
+    public:
+        vector<map<int,int>>freq;
+        vector<long long>s,m;
+        disjoint_set_union(int _n):n(_n) {
+            p.resize(n+1),s.resize(n+1),m.resize(n+1),freq.resize(n+1);
+            for(int i=1; i<=n; ++i) {p[i]=i;}
         }
-        ans[i]=publish(r);
+        inline int root(int u) {return (p[u]==u?u:p[u]=root(p[u]));}
+        inline void unite(int u, int v) {
+            u=root(u),v=root(v);
+            if(u==v) return;
+            if(freq[u].size()<freq[v].size()) swap(u,v);
+            for(auto[val,cnt]:freq[v]) {
+                long long pre=freq[u][val];
+                s[u]-=(pre*(pre-1))>>1;
+                long long nw=pre+cnt;
+                s[u]+=(nw*(nw-1))>>1;
+                freq[u][val]=nw;
+            }
+            m[u]+=m[v];
+            p[v]=u;
+            freq[v].clear();
+        }
+        inline long long get(int u) {
+            u=root(u);
+            long long t1=m[u],t2=s[u];
+            return 1+((t1*(t1-1))>>1)-t2;
+        }
+};
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    file("tet")
+    cin >> n >> q;
+    disjoint_set_union dsu(n);
+    for(int i=1; i<=n; ++i) {cin >> a[i];active[i]=true;}
+    for(int i=1; i<=q; ++i) {cin >> p[i];active[p[i]]=false;}
+    long long ans=1;
+    for(int i=1; i<=n; ++i) {
+        if(active[i]) {
+            dsu.freq[i][a[i]]=1;
+            dsu.m[i]=1;
+            if(active[i-1]) dsu.unite(i,i-1);
+            ans=max(ans,dsu.get(i));
+        }
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    for(int i=q; i>=1; --i) {
+        int t=p[i];
+        res[i]=ans;
+        dsu.freq[t][a[t]]=1;
+        dsu.m[t]=1;
+        active[t]=true;
+        if(t>1 && active[t-1]) {dsu.unite(t,t-1);ans=max(ans,dsu.get(t));}
+        if(t<n && active[t+1]) {dsu.unite(t,t+1);ans=max(ans,dsu.get(t));}
+
     }
-    answer(res);
-}
+    for(int i=1; i<=q; ++i) cout << res[i] << '\n';
+    return 0; 
+
+} 
 /**/

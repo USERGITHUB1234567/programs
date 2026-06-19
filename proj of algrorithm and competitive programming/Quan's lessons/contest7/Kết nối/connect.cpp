@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=152,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,61 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
-        }
-        ans[i]=publish(r);
-    }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
-    }
-    answer(res);
+int n;
+pair<long double, long double>p[maxn];
+long double a[maxn][maxn],d[maxn],tr[maxn];
+long double w,c;
+inline long double dist(pair<long double,long double>a, pair<long double, long double>b) {
+    long double t1=a.fi-b.fi,t2=a.se-b.se;
+    return sqrtl(t1*t1+t2*t2);
 }
+bool u[maxn];
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n;
+    for(int i=1; i<=n; ++i) cin >> p[i].fi >> p[i].se;
+    cin >> w >> c;
+    for(int i=1; i<=n; ++i) {
+        for(int j=1; j<=n; ++j) {
+            if(i==j) continue;
+            a[i][j]=c*dist(p[i],p[j]);
+            //cerr << a[i][j] << ' ';
+        }
+        //cerr << '\n';
+    }
+    long double sum=0,ans;
+    for(int i=1; i<=n; ++i) {d[i]=a[1][i],tr[i]=1;u[i]=true;}
+    u[1]=false;
+    for(int k=1; k<n; ++k) {
+        int i=0;
+        for(int j=1; j<=n; ++j) {
+            if(u[j] && (i==0 || d[j]<d[i])) i=j;
+        }
+        sum+=d[i];
+        u[i]=false;
+        for(int j=1; j<=n; ++j) {
+            if(u[j] && d[j]>a[i][j]) {d[j]=a[i][j],tr[j]=i;}
+        }
+    }
+    ans=sum;
+    sum=0;
+    for(int i=1; i<=n; ++i) {a[i][0]=a[0][i]=w;}
+    for(int i=0; i<=n; ++i) {d[i]=a[0][i], tr[i]=0; u[i]=true;}
+    u[0]=false;
+    for(int k=1; k<=n; ++k) {
+        int i=-1;
+        for(int j=0; j<=n; ++j) {
+            if(u[j] && (i==-1 || d[j]<d[i])) i=j;
+        }
+        if(i==-1) break;
+        sum+=d[i];
+        u[i]=false;
+        for(int j=0; j<=n; ++j) {
+            if(u[j] && d[j]>a[i][j]) {d[j]=a[i][j],tr[j]=i;}
+        }
+    }
+    cout << setprecision(9) << fixed << min(sum,ans);
+    return 0; 
+
+} 
 /**/

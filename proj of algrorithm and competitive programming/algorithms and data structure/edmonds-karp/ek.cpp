@@ -48,63 +48,63 @@ inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cer
 int n,m;
 vector<int>adj[maxn];
 class edmonds_karp{
-private:
-int c[maxn][maxn],f[maxn][maxn],trace[maxn],maxflow=0,s,t,n;
+    private:
+        int c[maxn][maxn],f[maxn][maxn],trace[maxn],maxflow=0,s,t,n;
 vector<vector<int>>ans;
-public:
-edmonds_karp(int _n):n(_n){s=1,t=n; memset(c,0,sizeof(c)); memset(f,0,sizeof(f));}
-inline void change(int &u,int &v, int k) {c[u][v]=k;}
-inline bool check() {return trace[t] != 0;}
+    public:
+        edmonds_karp(int _n):n(_n){s=1,t=n; memset(c,0,sizeof(c)); memset(f,0,sizeof(f));}
+        inline void change(int &u,int &v, int k) {c[u][v]=k;}
+        inline bool check() {return trace[t]!= 0;}
 
-void bfs() {
-    fill(trace+1,trace+1+n,0);
-    trace[s]=-1;
-    queue<int>q;
-    q.push(s);
-    while(!q.empty()) {
-        int u=q.front();q.pop();
-        for(int v:adj[u]) {
-            if(trace[v] || f[u][v]-c[u][v]==0) continue;
-            trace[v]=u;
-            q.push(v);
-        }
-    }
-}
-inline void increase() {
-    int delta=INT_MAX;
-    int v=t;
-    while(v!=s) {
-        int u=trace[v];
-        delta=min(delta,c[u][v]-f[u][v]);
-        v=u;
-    }
-    maxflow+=delta;
-    v=t;
-    while(v!=s) {
-        int u=trace[v];
-        f[u][v]+=delta;
-        f[v][u]-=delta;
-        //path.push_back(v);
-        v=u;
-    }
-
-}
-vector<vector<int>>res() {
-    for(int i=1; i<=maxflow; ++i) {
-        vector<int>path;
-        int u=s;
-        path.pb(u);
-        while(u!=t) {
-            bool ck=false;
-            for(int v:adj[u]) {
-                if(c[u][v]>0 && f[u][v]>0) {--f[u][v];u=v;path.pb(u);ck=true;break;}
+        void bfs() {
+            fill(trace+1,trace+1+n,0);
+            trace[s]=-1;
+            queue<int>q;
+            q.push(s);
+            while(!q.empty()) {
+                int u=q.front();q.pop();
+                for(int v:adj[u]) {
+                    if(trace[v] || f[u][v]-c[u][v]==0) continue;
+                    trace[v]=u;
+                    q.push(v);
+                }
             }
-            if(!ck) break;
         }
-        ans.pb(path);
+        inline void increase() {
+            int delta=INT_MAX;
+            int v=t;
+            while(v!=s) {
+                int u=trace[v];
+                delta=min(delta,c[u][v]-f[u][v]);
+                v=u;
+            }
+            maxflow+=delta;
+            v=t;
+            while(v!=s) {
+                int u=trace[v];
+                f[u][v]+=delta;
+                f[v][u]-=delta;
+                //path.push_back(v);
+                v=u;
+            }
+
+        }
+        vector<vector<int>>res() {
+            for(int i=1; i<=maxflow; ++i) {
+                vector<int>path;
+                int u=s;
+                path.pb(u);
+                while(u!=t) {
+                    bool ck=false;
+                    for(int v:adj[u]) {
+                        if(c[u][v]>0 && f[u][v]>0) {--f[u][v];u=v;path.pb(u);ck=true;break;}
+                    }
+                    if(!ck) break;
+                }
+                ans.pb(path);
+            }
+            return ans;
     }
-    return ans;
-}
 };
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 

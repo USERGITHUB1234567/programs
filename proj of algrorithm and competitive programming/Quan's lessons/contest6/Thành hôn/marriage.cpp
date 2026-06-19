@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=300005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,58 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int n,m,q;
+vector<pair<int,int>>adj[maxn];
+pair<int,vector<int>>query[maxn];
+namespace souptrau{
+    bool vis[maxn],rem[maxn];
+    inline void bfs(int st) {
+        queue<int>q;
+        q.push(st);
+        vis[st]=true;
+        while(!q.empty()) {
+            int u=q.front();q.pop();
+            for(auto[v,i]:adj[u]) {
+                if(!rem[i] && !vis[v]) {
+                    vis[v]=true;
+                    q.push(v);
+                }
+            }
         }
-        ans[i]=publish(r);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    void solve() {
+        for(int t=1; t<=q; ++t) {
+            auto&[u,k]=query[t];bool ck=true;
+            if(k.empty()) {cout << "Yes\n";continue;}
+            for(int i:k) {if(i==u){ck=false;break;}}
+            if(!ck) {cout << "No\n";continue;}
+            for(int i=1; i<=n; ++i) vis[i]=false;
+            for(auto [v,i]:adj[u]) rem[i]=true;
+            bfs(k[0]);
+            
+            for(int i:k) {if(!vis[i]) {ck=false;break;}}
+            cout << (ck?"Yes":"No") << '\n';
+            for(auto[v,i]:adj[u]) rem[i]=false;
+        }
     }
-    answer(res);
 }
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> m;
+    for(int i=1,u,v; i<=m; ++i) {
+        cin >> u >> v;
+        adj[u].pb({v,i});
+        adj[v].pb({u,i});
+    }
+    cin >> q;
+    for(int i=1; i<=q; ++i) {
+        cin >> query[i].fi;
+        int t;cin >> t;
+        query[i].se.reserve(t);
+        for(int j=1,x; j<=t; ++j) {cin >> x;query[i].se.pb(x);}
+    }
+    souptrau::solve();
+    return 0; 
+
+} 
 /**/

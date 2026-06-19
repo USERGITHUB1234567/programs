@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=1003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,62 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+const long long inf=LLONG_MAX>>1;
+struct dinitz{
+    int n,m,s,t,d[maxn],ptr[maxn];
+    vector<int>adj[maxn];
+    long long cap[maxn][maxn],flow[maxn][maxn],maxflow;
+    inline void bfs(const int &s,const int &t) {
+        queue<int>q;
+        q.push(s);
+        memset(d,-1,sizeof(d));
+        d[s]=0;
+        while(!q.empty()) {
+            int u=q.front();q.pop();
+            for(int v:adj[u]) {
+                if(d[v]==-1 && flow[u][v]<cap[u][v]) {
+                    d[v]=d[u]+1;
+                    q.push(v);
+                }
+            }
         }
-        ans[i]=publish(r);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    inline long long dfs(int u, int t, long long f) {
+        if(f==0 || u==t) return f;
+        for(;ptr[u]<adj[u].size();++ptr[u]) {
+            int v=adj[u][ptr[u]];
+            if(d[v]!=d[u]+1 || flow[u][v]==cap[u][v]) continue;
+            long long push=dfs(v,t,min(f,cap[u][v]-flow[u][v]));
+            if(push) {
+                flow[u][v]+=push;
+                flow[v][u]-=push;
+                return push;
+            }
+        }
+        return 0;
     }
-    answer(res);
-}
+    long long maxflow(int s, int t) {
+        long long total=0;
+        while(true) {
+            bfs(s,t);
+            if(d[t]==-1) break;
+            memset(ptr,0,sizeof(ptr));
+            while(long long push=dfs(s,t,inf)) total+=push;
+        }
+        return total;
+    }
+}d;
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> d.n >> d.m >> d.s >> d.t;
+    for(int i=1,u,v,w; i<=d.m; ++i) {
+        cin >> u >> v >> w;
+        d.adj[u].pb(v);
+        d.adj[v].pb(u);
+        d.cap[u][v]+=w;
+    }
+    cout << d.maxflow(d.s,d.t);
+    return 0;
+
+} 
 /**/

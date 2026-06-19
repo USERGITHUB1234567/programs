@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -46,28 +45,54 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+
+int n, m, s, t, k;
+vector<pair<int, long long>> adj[maxn];
+int cnt[maxn];
+
+inline long long dijkstra(int st, int en) {
+    // Priority queue stores {current_distance, node}
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+    pq.push({0, st});
+    
+    while(!pq.empty()) {
+        auto [cd, u] = pq.top();
+        pq.pop();
+        
+        // INCREMENT the visit count for the node
+        cnt[u]++;
+        
+        // If we've already found K shortest paths to this node, ignore
+        if(cnt[u] > k) continue;
+        
+        // If we popped the destination node exactly K times, we found our answer
+        if(u == en && cnt[u] == k) {
+            return cd;
         }
-        ans[i]=publish(r);
+        
+        for(auto [v, w] : adj[u]) {
+            // Only push to PQ if we haven't already fully evaluated the neighbor K times
+            if(cnt[v] < k) {
+                pq.push({cd + w, v});
+            }
+        }
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    return -1; // Path doesn't exist
+}
+
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false); cin.tie(nullptr); cout.tie(nullptr); 
+    
+    cin >> n >> m >> s >> t >> k;
+    for(int i = 1, u, v; i <= m; ++i) {
+        long long w;
+        cin >> u >> v >> w;
+        
+        // DIRECTED graph: only push from u to v
+        adj[u].pb({v, w}); 
     }
-    answer(res);
+    
+    cout << dijkstra(s, t) << "\n";
+    return 0; 
 }
 /**/

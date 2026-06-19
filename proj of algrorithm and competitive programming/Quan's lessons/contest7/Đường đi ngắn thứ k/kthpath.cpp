@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -46,28 +45,50 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int n,m,s,t,k;
+vector<pair<int,long long>>adj[maxn];
+int cnt[maxn];
+priority_queue<long long>shortest[maxn];
+inline long long dijkstra(int st, int en) {
+    priority_queue<pair<long long,int>,vector<pair<long long, int>>,greater<pair<long long,int>>>pq;
+    pq.push({0,st});
+    shortest[st].push(0);
+    long long res=-1;
+    while(!pq.empty()) {
+        auto[cd,u]=pq.top();pq.pop();
+        if(shortest[u].size()>=k && cd>shortest[u].top()) continue;
+        ++cnt[u];
+        if(cnt[u]>k) continue;
+        if(u==en && cnt[u]==k) {
+            res=cd;
+            break;
         }
-        ans[i]=publish(r);
+        for(auto[v,w]:adj[u]) {
+            //if(cnt[v]<k) pq.push({cd+w,v});
+            long long nxt=cd+w;
+            if(shortest[v].size()<k) {
+                pq.push({nxt,v});
+                shortest[v].push(nxt);
+            }
+            else if(shortest[v].size()>=k && nxt<shortest[v].top()) {
+                shortest[v].pop();
+                shortest[v].push(nxt);
+                pq.push({nxt,v});
+            }
+        }
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
-    }
-    answer(res);
+    return res;
 }
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> m >> s >> t >> k;
+    for(int i=1,u,v,w; i<=m; ++i) {
+        cin >> u >> v >> w;
+        adj[u].pb({v,w});
+        //adj[v].pb({u,w});
+    }
+    cout << dijkstra(s,t);
+    return 0; 
+
+} 
 /**/

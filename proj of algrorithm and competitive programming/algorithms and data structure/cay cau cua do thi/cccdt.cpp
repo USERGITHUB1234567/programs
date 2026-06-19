@@ -19,7 +19,7 @@ void dfs(int u, int p) {
             dfs(v,u);
             low[u]=min(low[u],low[v]);
             //if(low[u]==0) cout << u << ' ';
-            if(low[u]==num[u]) bridge[i]=true;
+            if(low[v]>num[u]) bridge[i]=true;
         }
     }
     vis[u]=true;
@@ -51,6 +51,7 @@ int main() {
     }
     for(int i=1; i<=m; i++) {
         if(bridge[i]) {
+            cerr << i << ' ';
             int u=comp[edge[i].first],v=comp[edge[i].second];
             bridgetree[u].push_back(v);
             bridgetree[v].push_back(u);

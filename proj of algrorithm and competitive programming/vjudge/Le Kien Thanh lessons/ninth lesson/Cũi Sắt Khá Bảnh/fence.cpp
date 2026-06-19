@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -46,28 +45,39 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
-        }
-        ans[i]=publish(r);
+int n,l[maxn],r[maxn];
+long long h[maxn],w[maxn],prew[maxn];
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n;
+    for(int i=1; i<=n; ++i) {l[i]=0,r[i]=n+1;cin >> h[i];}
+    for(int i=1; i<=n; ++i) {cin >> w[i];prew[i]=prew[i-1]+w[i];}
+    stack<int>st;
+    prew[n+1]=prew[n];
+    for(int i=1; i<=n; ++i) {
+        while(!st.empty() && h[st.top()]>=h[i]) st.pop();
+        if(!st.empty()) l[i]=st.top();
+        st.push(i);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    while(!st.empty()) st.pop();
+    for(int i=n; i>=1; --i) {
+        while(!st.empty() && h[st.top()]>h[i]) st.pop();
+        if(!st.empty()) r[i]=st.top();
+        st.push(i);
     }
-    answer(res);
-}
+    long long ans=0,inv2=500000004;
+    for(int i=1; i<=n; ++i) {
+        long long t1=(prew[i]-prew[l[i]])%mod,t2=(prew[r[i]-1]-prew[i-1])%mod;
+        long long wi=w[i]%mod,wi_1=(w[i]-1)%mod,sub=wi*wi_1% mod*inv2%mod;
+        long long H_span=(t1*t2%mod-sub+mod)%mod;
+        long long hi=h[i]%mod;
+        long long hi_plus_1=(h[i]+1)%mod;
+        long long V_span=hi*hi_plus_1%mod*inv2%mod;
+        long long add=H_span*V_span%mod;
+        ans=(ans+add)%mod;
+    }
+    cout << ans;
+    return 0; 
+
+} 
 /**/

@@ -1,6 +1,5 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
-#include "art.h"
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -17,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -46,28 +45,77 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-// void solve(int n) {
-//     vector<int>p;
-//     p.reserve(n);
-//     for(int i=1; i<=n; ++i) p.pb(i);
-//     do{
-//         if(publish(p)==0) break;
-//     }while(next_permutation(all(p)));
-//     answer(p);
-// }
-void solve(int n) {
-    vector<int>r(n),ans(n),res(n);
-    //for(int i=1; i<=n; ++i) r.pb(i);
-    for(int i=0; i<n; ++i) {
-        for(int j=0; j<n; ++j) {
-            r[j]=(i+j)%n+1;
+int tc;
+namespace cookedsoup{
+    int n,m,timer,ncomp;
+    vector<bool>bridge;
+    vector<int>num,low,comp;
+    vector<vector<pair<int,int>>>adj;
+    vector<vector<int>>tree;
+    inline void dfs(int u, int p) {
+        low[u]=num[u]=++timer;
+        for(auto[v,i]:adj[u]) {
+            if(v==p) continue;
+            if(num[v]) low[u]=min(low[u],num[v]);
+            else {
+                dfs(v,u);
+                low[u]=min(low[u],low[v]);
+                if(low[v]>num[u]) bridge[i]=true;
+            }
         }
-        ans[i]=publish(r);
     }
-    for(int i=0; i<n; ++i) {
-        int nxt=ans[(i+1)%n],pos=(ans[i]-nxt+n-1)>>1;
-        res[pos]=i+1;
+    inline void dfs1(int u) {
+        comp[u]=ncomp;
+        for(auto[v,i]:adj[u]) {
+            if(!comp[v] && !bridge[i]) dfs1(v);
+        }
     }
-    answer(res);
+    
+    void solve(int _n,vector<pair<int,int>>&edge) {
+        n=_n;
+        m=edge.size();
+        bridge.assign(m,false);
+        low.assign(n,0),num.assign(n,0);
+        adj.assign(n,{});comp.assign(n,0);
+        for(int i=0; i<m; ++i) {
+            auto[u,v]=edge[i];
+            adj[u].pb({v,i});
+            adj[v].pb({u,i});
+        }
+        dfs(0,0);
+        for(int i=0; i<n; ++i) {
+            if(!comp[i]) {dfs1(i);++ncomp;}
+        }
+        tree.assign(ncomp,{});
+        for(int i=0; i<m; ++i) {
+            if(bridge[i]) {
+                auto[u,v]=edge[i];
+                u=comp[u],v=comp[v];
+                tree[u].pb(v);
+                tree[v].pb(u);
+            }
+        }
+        int ans=0;
+        for(int i=0; i<ncomp; ++i) {
+            if(tree[i].size()==1) ++ans;
+        }
+        cout << ((ans+1)>>1) << '\n';
+    }
 }
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> tc;
+    while(tc--) {
+        int n,m;vector<pair<int,int>>edge;
+        cin >> n >> m;
+        edge.reserve(m);
+        for(int i=1,u,v; i<=m; ++i) {
+            cin >> u >> v;
+            edge.pb({u,v});
+        }
+        cookedsoup::solve(n,edge);
+    }
+    return 0; 
+
+} 
 /**/
