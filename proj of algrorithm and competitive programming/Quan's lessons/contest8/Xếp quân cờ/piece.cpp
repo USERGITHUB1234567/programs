@@ -45,26 +45,118 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int tc;
+class disjoint_set_union{
+    private:
+        int n;
+        vector<int>lab;
+    public:
+        disjoint_set_union(int _n) {init(_n);}
+        inline void init(int _n) {
+            n=_n;
+            lab.assign(n+1,-1);
+        }
+        inline int root(int u) {return lab[u]<0?u:lab[u]=root(lab[u]);}
+        inline void unite(int u, int v) {
+            u=root(u),v=root(v);
+            if(u!=v) {
+                if(lab[u]>lab[v]) swap(u,v);
+                lab[u]+=lab[v];
+                lab[v]=u;
+            }
+        }
+};
+struct edge{int u,v;};
+void solve() {
+    int n,m;cin >> n >> m;
+    disjoint_set_union dsux(n),dsuy(n);
+    vector<edge>xe,ye;
+    for(int i=1,u,v; i<=m; ++i) {
+        char t;cin >> u >> t >> v;
+        switch(t) {
+            case('l'):
+                dsuy.unite(u,v);
+                xe.pb({u,v});
+                break;
+            case('r'):
+                dsuy.unite(u,v);
+                xe.pb({v,u});
+                break;
+            case('d'):
+                dsux.unite(u,v);
+                ye.pb({u,v});
+                break;
+            case('u'):
+                dsux.unite(u,v);
+                ye.pb({v,u});
+                break;
+        }
+    }
+    vector<int>adjx[n+1];
+    vector<int>inx(n+1,0);
+    for(auto e:xe) {
+        int ru=dsux.root(e.u),rv=dsux.root(e.v);
+        if(ru==rv) {cout << "NO\n";return;}
+        adjx[ru].pb(rv);
+        ++inx[rv];
+    }
+    vector<int>adjy[n+1];
+    vector<int>iny(n+1,0);
+    for(auto e:ye) {
+        int ru=dsuy.root(e.u),rv=dsuy.root(e.v);
+        if(ru==rv) {cout << "NO\n";return;}
+        adjy[ru].pb(rv);
+        ++iny[rv];
+    }
+    queue<int>qx;
+    vector<int>valx(n+1,1);
+    int cntx=0,rtx=0;
+    for(int i=1; i<=n; ++i) {
+        if(dsux.root(i)==i) {
+            ++rtx;
+            if(!inx[i]) qx.push(i);
+        }
+    }
+    while(!qx.empty()) {
+        int u=qx.front();
+        qx.pop();
+        ++cntx;
+        for(int v:adjx[u]) {
+            valx[v]=max(valx[u]+1,valx[v]);
+            --inx[v];
+            if(!inx[v]) qx.push(v);
+        }
+    }
+    if(cntx<rtx) {cout << "NO\n";return;}
+    queue<int>qy;
+    vector<int>valy(n+1,1);
+    int cnty=0,rty=0;
+    for(int i=1; i<=n; ++i) {
+        if(dsuy.root(i)==i) {
+            ++rty;
+            if(!iny[i]) qy.push(i);
+        }
+    }
+    while(!qy.empty()) {
+        int u=qy.front();qy.pop();
+        ++cnty;
+        for(int v:adjy[u]) {
+            valy[v]=max(valy[v],valy[u]+1);
+            --iny[v];
+            if(!iny[v]) qy.push(v);
+        }
+    }
+    if(cnty<rty) {cout << "NO\n";return;}
+    cout << "YES\n";
+    for(int i=1; i<=n; ++i) {
+        cout << valx[dsux.root(i)] << ' ' << valy[dsuy.root(i)] << '\n';
+    }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
     cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+    while(tc--) {
+        solve();
     }
     return 0; 
 

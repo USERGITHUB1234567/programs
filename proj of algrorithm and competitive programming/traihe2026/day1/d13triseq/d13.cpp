@@ -10,6 +10,7 @@
 #define fi first 
 #define se second 
 #define pb push_back 
+#define int long long
 using namespace std; 
 using namespace std::chrono; 
 static const int maxd=1003; 
@@ -45,28 +46,91 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
+int n,t;
+vector<int>a;
+vector<vector<int>>ans;
 
-        };
-    };
-}
-int main(int argc, char** argv) { 
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+namespace soup1{
+    inline void backtrack(int g, vector<int>&cur, int mn1=1e9, int mn2=1e9, int mx=-1e9) {
+        if(g>n) {
+            ans.pb(cur);
+            return;
+        }
+        for(int i=1; i<=n; ++i) {
+            int nmn1=mn1,nmn2=mn2,nmx=mx;
+            if(i<=nmn1) {nmn2=nmn1;nmn1=i; }
+            else if(i<nmn2) {nmn2=i;}
+            if(i>nmx) {nmx=i;}
+            if(nmn2!=1e9 && nmn1+nmn2<=nmx) continue;
+            cur[g-1]=i;
+            backtrack(g+1, cur, nmn1, nmn2, nmx);
+        }
     }
+    void solve() {
+        vector<int>b(n);
+        backtrack(1,b);
+        cout << ans.size() << '\n';
+        //sort(all(ans));
+        for(int i:ans[t-1]) cout << i << ' ';
+        cout << '\n';
+        cout << lower_bound(all(ans),a)-ans.begin()+1;
+    }
+}
+namespace soupfull{
+    int ans[20];
+    long long f[20][20][20][20];
+    void upd(int &mn1, int &mn2, int&mx, int x) {
+        if(x<mn1) {mn2=mn1;mn1=x;}
+        else if(x<mn2) {mn2=x;}
+        mx=max(mx,x);
+    }
+    long long process(int id, int mn1, int mn2, int mx) {
+        if(id==n+1) return mn1+mn2>mx;
+        if(f[id][mn1][mn2][mx]!=-1) return f[id][mn1][mn2][mx];
+        long long res=0;
+        for(int x=1; x<=n; ++x) {
+            int nmn1=mn1,nmn2=mn2,nmx=mx;
+            upd(nmn1,nmn2,nmx,x);
+            res+=process(id+1,nmn1,nmn2,nmx);
+        }
+        return f[id][mn1][mn2][mx]=res;
+    }
+    void solve() {
+        memset(f,-1,sizeof(f));
+        int mn1=n+1,mn2=n+1,mx=0;
+        for(int i=1; i<=n; ++i) {
+            for(int x=1; x<=n; ++x) {
+                int nmn1=mn1,nmn2=mn2,nmx=mx;
+                upd(nmn1,nmn2,nmx,x);
+                long long k=process(i+1,nmn1,nmn2,nmx);
+                if(t>k) t-=k;
+                else {ans[i]=x;mn1=nmn1,mn2=nmn2,mx=nmx;break;}
+            }
+        }
+        long long rnk=1;
+        mn1=n+1,mn2=n+1,mx=0;
+        //memset(f,-1,sizeof(f));
+        for(int i=1; i<=n; ++i) {
+            for(int x=1; x<a[i]; ++x) {
+                int nmn1=mn1,nmn2=mn2,nmx=mx;
+                upd(nmn1,nmn2,nmx,x);
+                rnk+=process(i+1,nmn1,nmn2,nmx);
+            }
+            upd(mn1,mn2,mx,a[i]);
+        }
+        //memset(f,-1,sizeof(f));
+        cout << process(1,n+1,n+1,0) << '\n';
+        for(int i=1; i<=n; ++i) cout << ans[i] << ' ';
+        cout << '\n' << rnk;
+    }
+}
+signed main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> t;
+    a.resize(n+1);
+    for(int i=1; i<=n; ++i) cin >> a[i];
+    soupfull::solve();
+    //get_execution_time();
     return 0; 
-
 } 
 /**/

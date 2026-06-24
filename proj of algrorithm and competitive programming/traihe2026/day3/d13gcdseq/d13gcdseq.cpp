@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,7 +37,7 @@ namespace utilities{
     inline void quicksort_lomuto(vector<int>&a, int l, int r) {if(l>=r) return;int p=lomuto_partition(a,l,r);quicksort_lomuto(a,l,p-1);quicksort_lomuto(a,p+1,r);} 
     inline void quicksort_hoare(vector<int>&a, int l, int r) {if(l>=r) return;int p=hoare_partition(a,l,r);quicksort_hoare(a,l,p);quicksort_hoare(a,p+1,r);} 
 } 
-//using namespace utilities; 
+using namespace utilities; 
 mt19937_64 generator1(steady_clock::now().time_since_epoch().count()); 
 mt19937_64 generator2(high_resolution_clock::now().time_since_epoch().count()); 
 inline long long rnd1(long long a, long long b) {return a+generator1()%(b-a+1);} 
@@ -45,27 +45,59 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int n,m,a[maxn],dif[maxn][21],cur[21],mk[maxn][21];
+struct condition{int l,r,c;}con[maxn];
+inline int lcm(long long a, long long b) {
+    long long ans=a*b/__uiagcd(a,b);
+    return ans;
 }
+class segment_tree{
+    private:
+        int st[maxn<<2];
+    public:
+        void build(int id, int l, int r) {
+            if(l==r) {st[id]=a[l];return;}
+            int mid=(l+r)>>1;
+            build(id<<1,l,mid);
+            build(id<<1|1,mid+1,r);
+            st[id]=__uiagcd(st[id<<1],st[id<<1|1]);
+        }
+        int query(int id, int l, int r, int i, int j) {
+            if(l>j || r<i) return 0;
+            if(l>=i && r<=j) return st[id];
+            int mid=(l+r)>>1;
+            //return __uiagcd(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
+            int ql=query(id<<1,l,mid,i,j),qr=query(id<<1|1,mid+1,r,i,j);
+            if(ql==0) return qr;
+            if(qr==0) return ql;
+            return __uiagcd(ql,qr);
+        }
+}seg;
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+    cin >> n >> m;
+    for (int i=1; i<=m; ++i) {
+        cin >> con[i].l >> con[i].r >> con[i].c;
+        dif[con[i].l][con[i].c]++;
+        dif[con[i].r+1][con[i].c]--;
     }
+    for (int i=1; i<=n; ++i) {
+        ll l=1;
+        for (int j=1; j<=20; ++j) {
+            cur[j]+=dif[i][j];
+            if (cur[j]>0) l=lcm(l,j);
+        }
+        if (l>1e9) l=1e9; 
+        a[i]=(int)l;
+    }
+    seg.build(1,1,n);
+    for (int i=1; i<=m; ++i) {
+        if (seg.query(1,1,n,con[i].l,con[i].r)!=con[i].c) {
+            cout << -1;
+            return 0;
+        }
+    }
+    for (int i=1; i<=n; ++i) cout << a[i] << (i==n ? "" : " ");
     return 0; 
 
 } 

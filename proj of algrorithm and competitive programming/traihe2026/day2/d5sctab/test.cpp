@@ -45,28 +45,55 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
-}
+int n,m,s;
+vector<vector<int>>board;
+vector<int>ord,ans;
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+    scanf("%d%d%d",&m,&n,&s);
+    board.assign(m, vector<int>(n));
+    for(int i=0; i<m; ++i) for(int j=0; j<n; ++j) scanf("%d",&board[i][j]);
+    ord.resize(s);
+    for(int i=0; i<s; ++i) scanf("%d",&ord[i]);
+    vector<int> target_idx(m);
+    iota(all(target_idx), 0);
+    for(int i=0; i<ord.size(); ++i) {
+        int col = ord[i] - 1;
+        stable_sort(all(target_idx), [&](int r1, int r2) {
+            return board[r1][col] < board[r2][col];
+        });
     }
-    return 0; 
-
+    vector<int> init_idx(m);
+    iota(all(init_idx), 0);
+    if(target_idx == init_idx) {
+        printf("0\n");
+        return 0;
+    }
+    vector<int> srt;
+    for(int i=1; i<=n; ++i) srt.pb(i);
+    ans.assign(15, 9);
+    do {
+        if (ans.size() <= 1) break; 
+        vector<int> tmp_idx = init_idx;
+        for(int i=0; i<srt.size(); ++i) {
+            if (i >= ans.size() - 1) break; 
+            int col = srt[i] - 1;
+            stable_sort(all(tmp_idx), [&](int r1, int r2) {
+                return board[r1][col] < board[r2][col];
+            });
+            if(tmp_idx == target_idx) {
+                vector<int> r;
+                for(int j=0; j<=i; ++j) r.pb(srt[j]);
+                if (r.size() < ans.size() || (r.size() == ans.size() && r < ans)) {
+                    ans = r;
+                }
+                break; 
+            }
+        }
+    } while(next_permutation(all(srt)));
+    printf("%d\n", (int)ans.size());
+    for(int i=0; i<ans.size(); ++i) printf("%d ", ans[i]);
+    printf("\n");
+    return 0;
 } 
 /**/

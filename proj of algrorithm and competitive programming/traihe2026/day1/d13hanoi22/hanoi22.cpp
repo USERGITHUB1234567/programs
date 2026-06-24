@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=102,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,27 +45,51 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int n,p;
+string s;
+namespace souptrau{
+    char status[maxn];
+    vector<vector<char>>ans;
+    int cnt=0,res=-1;
+    stack<int>st[3];
+    vector<char>pt;
+    inline void move(int disk, char s, char t, char a) {
+        if(disk==0) return;
+        if(disk==1) {
+            int cs=s-'A',cur=st[cs].top(),ct=t-'A';
+            st[cs].pop();
+            st[ct].push(cur);
+            status[cur]=t;
+            vector<char>tmp;
+            tmp.reserve(n);
+            for(int i=1; i<=n; ++i) tmp.pb(status[i]);
+            ans.pb(tmp);
+            ++cnt;
+            // for(char c:tmp) cerr << c;
+            // cerr << '\n';
+            if(tmp==pt) res=cnt; 
+            return;
+        }
+        move(disk-1,s,a,t);
+        move(1,s,t,a);
+        move(disk-1,a,t,s);
+    }
+    void solve(int n, int p, string s) {
+        fill(status+1,status+1+n,'A');
+        for(char c:s)pt.pb(c);
+        for(int i=n; i>=1; --i) st[0].push(i);
+        move(n,'A','C','B');
+        for(char c:ans[p-1]) cout << c;
+        cout << '\n' << res;
+    }
+}
+namespace soupfull{
+    
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
-    }
+    cin >> n >> p >> s;
+    souptrau::solve(n,p,s);
     return 0; 
 
 } 

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=502,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,28 +45,45 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int n,s,w[maxn],v[maxn];
+namespace classical_knapsack{
+    ll f[300005];
+    ll solve(int _s) {
+        if(_s <= 0) return 0;
+        for(int i=1; i<=_s; ++i) {
+            for(int j=1; j<=n; ++j) {
+                if(i>=w[j]) f[i]=max(f[i],f[i-w[j]]+v[j]);
+            }
+        }
+        return *max_element(f+1, f+1+_s);
+    }
+}
+namespace soupfull{
+    long long f[300005];
+    void solve() {
+        int best=1;
+        for(int i=2; i<=n; ++i) {
+            long long t1=1ll*v[best]*w[i],t2=1ll*v[i]*w[best];
+            if(t1<t2) best=i;
+            else if(t1==t2 && w[i]<w[best]) best=i;
+        }
+        int quantity=0;
+        while(s-(quantity+1)*w[best]>=250000) ++quantity;
+        long long base=1ll*v[best]*quantity,extra=0;
+        for(int i=0; i<=s-w[best]*quantity; ++i) {
+            for(int j=1; j<=n; ++j) {
+                if(i>=w[j]) f[i]=max(f[i],f[i-w[j]]+v[j]);
+                extra=max(extra,f[i]);
+            }
+        }
+        cout << base+extra;
+    }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
-    }
+    cin >> n >> s;for(int i=1; i<=n; ++i) cin >> w[i];for(int i=1; i<=n; ++i) cin >> v[i];
+    //classical_knapsack::solve();
+    soupfull::solve();
     return 0; 
-
 } 
 /**/

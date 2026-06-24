@@ -45,27 +45,29 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
-}
+class disjoint_set_union{
+    private:
+        int n;
+        vector<int>lab;
+    public:
+        disjoint_set_union(int _n) {init(_n);}
+        inline void init(int _n) {
+            n=_n;
+            lab.assign(n+1,-1);
+        }
+        inline int root(int u) {return lab[u]<0?u:lab[u]=root(lab[u]);}
+        inline void unite(int u, int v) {
+            u=root(u),v=root(v);
+            if(u!=v) {
+                if(lab[u]>lab[v]) swap(u,v);
+                lab[u]+=v;
+                lab[v]=u;
+            }
+        }
+};
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
-    }
+    //your code goes here
     return 0; 
 
 } 

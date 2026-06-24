@@ -45,26 +45,60 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int n,m,k,szx,szy,nx[202][26],ny[202][26];
+long long f[202][202][202];
+string x,y,s[202];
+long long process(int id, int px, int py) {
+    if(id>n) {return py==szy+1;}
+    if(f[id][px][py]!=-1) return f[id][px][py];
+    long long res=0;
+    for(int c=0; c<26; ++c) {
+        int npx=nx[px][c];
+        if(npx==szx+1) continue;
+        int npy=ny[py][c];
+        res=(res+process(id+1,npx,npy))%k;
+    }
+    return f[id][px][py]=res;
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+    memset(f,-1,sizeof(f));
+    cin >> m >> n >> k >> x >> y;
+    for(int i=1; i<=m; ++i) cin >> s[i];
+    szx=x.size(),szy=y.size();
+    for(int i=0; i<=szx+1; ++i) fill(nx[i],nx[i]+26,szx+1);
+    for(int i=1; i<=szy+1; ++i) fill(ny[i],ny[i]+26,szy+1);
+    for(int i=szx-1; i>=0; --i) {
+        for(int j=0; j<26; ++j) {
+            nx[i][j]=nx[i+1][j];
+        }
+        nx[i][x[i]-'a']=i+1;
+    }
+    for(int i=szy-1; i>=0; --i) {
+        for(int j=0; j<26; ++j) ny[i][j]=ny[i+1][j];
+        ny[i][y[i]-'a']=i+1;
+    }
+    //cout << ny[2][1];
+    for(int i=1; i<=m; ++i) {
+        long long ans=1;
+        int px=0,py=0;
+        bool ck=true;
+        for(char c:s[i]) {
+            px=nx[px][c-'a'],py=ny[py][c-'a'];
+            if(px==szx+1) {ck=false;break;}
+        }
+        if(!ck || py!=szy+1) {cout << -1 << '\n';continue;}
+        px=0,py=0;
+        for(int j=0; j<n; ++j) {
+            int t=s[i][j]-'a';
+            for(int c=0; c<t; ++c) {
+                int npx=nx[px][c],npy=ny[py][c];
+                if(npx==szx+1) continue;
+                ans=(ans+process(j+2,npx,npy))%k;
+            }
+            px=nx[px][t],py=ny[py][t];
+        }
+        cout << ans << '\n';
     }
     return 0; 
 

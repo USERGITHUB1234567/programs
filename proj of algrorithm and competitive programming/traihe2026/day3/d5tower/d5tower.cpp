@@ -1,5 +1,7 @@
 /**/ 
-#pragma GCC optimize("O3","Ofast","unroll-loops") 
+#ifndef __clang__
+#pragma GCC optimize("O3","Ofast","unroll-loops")
+#endif
 #include <bits/stdc++.h> 
 #define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
 #define all(x) x.begin(), x.end() 
@@ -16,7 +18,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=1003,mod=1000000007; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,27 +47,31 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
-}
-int main(int argc, char** argv) { 
+struct person{int w,c,b;};
+int main() { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
+    int n;
+    if(!(cin >> n)) return 0;
+    vector<person>p(n);
+    int mxw=0;
+    for(int i=0; i<n; ++i) {
+        cin >> p[i].w >> p[i].c >> p[i].b;
+        mxw=max(mxw,p[i].w+p[i].c);
     }
+    sort(p.begin(),p.end(),[](const person& a, const person& b) {return a.w+a.c<b.w+b.c;});
+    const long long neg=-(1LL<<60);
+    vector<long long> f(mxw+1,neg);
+    f[0]=0;
+    long long ans=0;
+    for(person& x:p) {
+        for(int w=x.c; w>=0; --w) {
+            if(f[w]==neg) continue;
+            int nw=w+x.w;
+            f[nw]=max(f[nw],f[w]+x.b);
+            ans=max(ans,f[nw]);
+        }
+    }
+    cout << ans;
     return 0; 
 
 } 

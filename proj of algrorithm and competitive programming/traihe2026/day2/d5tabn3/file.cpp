@@ -1,7 +1,7 @@
 /**/ 
 #pragma GCC optimize("O3","Ofast","unroll-loops") 
 #include <bits/stdc++.h> 
-#define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
+#define file(name) if(fopen(name".inp", "r")) {freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout);} 
 #define all(x) x.begin(), x.end() 
 #define sortunique(x) sort(all(x)); x.erase(unique(all(x)), x.end()); 
 #define forw(i,a,b) for(int (i)=(a); (i)<=(b); ++(i)) 
@@ -45,27 +45,90 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int tc,n,m,l,p[maxn],q[maxn];
-long long solve(int &n, int &m, int &l, vector<int>&p, vector<int>&q) {
-    sort(all(p));sort(all(q));
-    auto get_cost=[&](const vector<int>&vec) {
-        int sz=vec.size();
-        auto get_a=[&](int id)->long long {
-
-        };
-    };
+int x,y,z,n,board[maxn][3];
+long long ans=LLONG_MIN;
+namespace souptrau{
+    int choose[maxn];
+    void backtrack(int id, int dx, int dy, int dz) {
+        if(id>n) {
+            long long sum=0;
+            for(int i=1; i<=n; ++i) sum+=board[i][choose[i]];
+            ans=max(ans,sum);
+            return;
+        }
+        for(int i=0; i<3; ++i) {
+            if(i==0) {
+                int ndx=dx+1;
+                if(ndx<=x) {choose[id]=i;backtrack(id+1,ndx,dy,dz);}
+            }
+            else if(i==1) {
+                int ndy=dy+1;
+                if(ndy<=y) {choose[id]=i;backtrack(id+1,dx,ndy,dz);}
+            }
+            else {
+                int ndz=dz+1;
+                if(ndz<=z) {choose[id]=i;backtrack(id+1,dx,dy,ndz);}
+            }
+        }
+    }
+    void solve() {
+        backtrack(1,0,0,0);
+        printf("%lld",ans);
+    }
+}
+namespace soupfull {
+    struct row{long long a,b,c;};
+    void solve() {
+        vector<row>v(n);
+        long long base=0;
+        for(int i=0; i<n; ++i) {
+            v[i].a=board[i+1][0];
+            v[i].b=board[i+1][1];
+            v[i].c=board[i+1][2];
+            base+=v[i].c;
+        }
+        sort(all(v),[](const row& a, const row& b) {return (a.a-a.b)>(b.a-b.b);});
+        vector<long long>f(n+1,0);
+        priority_queue<long long ,vector<long long>, greater<long long>>pq;
+        long long sumx=0;
+        for(int i=0; i<n; ++i) {
+            long long val=v[i].a-v[i].c;
+            if(x) {
+                pq.push(val);
+                sumx+=val;
+                if(pq.size()>x) {
+                    sumx-=pq.top();
+                    pq.pop();
+                }
+            }
+            if(i+1>=x) f[i+1]=sumx;
+        }
+        while(!pq.empty()) pq.pop();
+        long long sumy=0;
+        vector<long long>g(n+1,0);
+        for(int i=n-1; i>=0; --i) {
+            long long val=v[i].b-v[i].c;
+            if(y) {
+                pq.push(val);
+                sumy+=val;
+                while(pq.size()>y) {
+                    sumy-=pq.top();
+                    pq.pop();
+                }
+            }
+            if(n-i>=y) g[i]=sumy;
+        }
+        long long ans=LLONG_MIN;
+        for(int i=x; i<=n-y; ++i) ans=max(ans,base+f[i]+g[i]);
+        printf("%lld",ans);
+    }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    file("cycle")
-    cin >> tc;
-    for(int t=1; t<=tc; ++t) {
-        int n,m,l;
-        vector<int>p(m),q(l);
-        cin >> n >> m >> l;
-        for(int i=0; i<m; ++i) cin >> p[i];
-        for(int i=0; i<l; ++i) cin >> q[i];
-    }
+    scanf("%d%d%d",&x,&y,&z);
+    n=x+y+z;
+    for(int i=1; i<=n; ++i) scanf("%d%d%d",&board[i][0],&board[i][1],&board[i][2]);
+    soupfull::solve();
     return 0; 
 
 } 
