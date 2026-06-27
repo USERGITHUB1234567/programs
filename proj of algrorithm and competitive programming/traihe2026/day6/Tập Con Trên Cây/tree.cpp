@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=2003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,38 +45,33 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+int n,k,p[maxn],sz[maxn];
+long long s[maxn],f[maxn][maxn];
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
-    for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
-        }
-        else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
+    for(int i=0; i<n; ++i) cin >> s[i];
+    vector<vector<int>>adj(n);
+    for(int i=1; i<n; ++i) {
+        cin >> p[i];
+        adj[p[i]].pb(i);
+    }
+    auto dfs=[&](auto &self, int u)->void {
+        sz[u]=1;
+        f[u][0]=f[u][1]=0;
+        for(int v:adj[u]) {
+            self(self,v);
+            for(int t=sz[u]; t>=0; --t) {
+                for(int w=sz[v]; w>=0; --w) {
+                    f[u][t+w]=max(f[u][t+w],f[u][t]+f[v][w]+t*w*s[u]);
+                }
+                
             }
-            else curv=it->second;
+            sz[u]+=sz[v];
         }
-        st[i]=curv;
-        cerr << st[i] << ' ';
-    }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
-    }
+    };
+    dfs(dfs,0);
+    cout << f[0][k];
     return 0; 
 
 } 

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,39 +45,61 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+int n,m;
+vector<long long>t[2];
+vector<int>t2;
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
+    cin >> n >> m;
     for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
-        }
-        else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
-            }
-            else curv=it->second;
-        }
-        st[i]=curv;
-        cerr << st[i] << ' ';
+        int type,x;cin >> type >> x;
+        if(type<2) t[type].pb(x);
+        else t2.pb(x);
     }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
+    sort(all(t[0]),greater<long long>());
+    sort(all(t[1]),greater<long long>());
+    sort(all(t2),greater<long long>());
+    long long cur=0,p=min(m-1,(int)t[0].size()-1),ans=0,used=p+1;
+    if(!t[0].empty())for(int i=0; i<=p; ++i) cur+=t[0][i];
+    if(t[0].empty()) used=0;
+    ans=cur;
+    if(t[1].empty()) {cout << ans;return 0;}
+    for(int i=0,j=0,key=0; i<t2.size(); ++i) {
+        if(p==0) break;
+        key+=t2[i];
+        //if(j==t[1].size()) break;
+        ++used;
+        if(used>m) {if(p>0 || !t[0].empty()){--used;cur-=t[0][p];--p;}else break;}
+        for(j; j<t[1].size() && j<key; ++j) {
+            //cerr << j << ' ';
+            ++used;
+            if(used>m) {if(p>0 || !t[1].empty()){--used;cur-=t[0][p];--p;}else break;}
+            cur+=t[1][j];
+            ans=max(ans,cur);
+        }
+        //cerr << cur << ' ';
     }
+    cout << ans;
     return 0; 
 
 } 
 /**/
+/*
+8 4
+0 6
+0 6
+1 3
+1 5
+1 15
+2 1
+2 10
+2 100
+
+6 4
+1 100
+1 80
+1 60
+1 50
+2 1
+2 3
+*/

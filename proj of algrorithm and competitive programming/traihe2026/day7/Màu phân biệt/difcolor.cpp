@@ -16,20 +16,12 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
     inline ll __logarit(ll k, ll n){ll res=0;while(n>0){n/=k;++res;}return res;} 
     inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e>0) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
-    inline int maxi(int a, int b) {return (a>b?a:b);} 
-    inline int mini(int a, int b) {return (a<b?a:b);} 
-    inline ll maxill(ll a, ll b) {return (a>b?a:b);} 
-    inline ll minill(ll a, ll b) {return (a<b?a:b);} 
-    inline double maxid(double a, double b) {return (a>b?a:b);} 
-    inline double minid(double a, double b) {return (a<b?a:b);} 
-    inline ld maxild(ld a, ld b) {return (a>b?a:b);} 
-    inline ld minild(ld a, ld b) {return (a<b?a:b);} 
     void setUpFactor() { fact[0]=1; for(int i=1; i<maxn; ++i) fact[i]=fact[i-1]*i%mod; int tc=maxn-1; ifact[tc]=modexp(fact[tc],mod-2,mod); for(int i=tc; i>=1; --i) ifact[i-1]=ifact[i]*i%mod; } 
     inline long long ncr(long long k, long long n) {return (k==n?1:fact[n]*ifact[n-k]%mod*ifact[k]%mod);} 
     inline int lomuto_partition(vector<int>&a, int l, int r) {int pivot=a[r],i=l-1;for(int j=l; j<r; ++j) {if(a[j]<=pivot) {++i;swap(a[i],a[j]);}}swap(a[r],a[i+1]);return i+1;} 
@@ -45,38 +37,32 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+int n,a[maxn];
+vector<int>adj[maxn];
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> k;
+    cin >> n;
+    for(int i=1,u,v; i<n; ++i) {
+        cin >> u >> v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
     for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
-    for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
+    vector<int>res(n+1);
+    vector<unordered_set<int>>st(n+1);
+    auto dfs=[&](auto& self, int u, int p)->void {
+        st[u].insert(a[u]);
+        for(int v:adj[u]) {
+            if(v==p) continue;
+            self(self,v,u);
+            if(st[u].size()<st[v].size()) swap(st[u],st[v]);
+            for(auto t:st[v]) st[u].insert(t);
+            st[v].clear();
         }
-        else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
-            }
-            else curv=it->second;
-        }
-        st[i]=curv;
-        cerr << st[i] << ' ';
-    }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
-    }
+        res[u]=st[u].size();
+    };
+    dfs(dfs,1,0);
+    for(int i=1; i<=n; ++i) cout << res[i] << ' ';
     return 0; 
 
 } 

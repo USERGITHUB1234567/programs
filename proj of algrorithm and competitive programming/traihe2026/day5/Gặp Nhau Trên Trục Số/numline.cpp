@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=200005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,38 +45,41 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+int n,k,p[maxn];
+char d[maxn];
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
+    for(int i=1; i<=n; ++i) cin >> p[i];
+    for(int i=1; i<=n; ++i) cin >> d[i];
+    vector<long long>l,r;
+    unordered_map<int,int>ump;
     for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
-        }
-        else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
-            }
-            else curv=it->second;
-        }
-        st[i]=curv;
-        cerr << st[i] << ' ';
+        if(d[i]=='L') l.pb(p[i]);
+        else r.pb(p[i]);
+        ++ump[p[i]];
     }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
+    sort(all(l));
+    vector<int>preodd(l.size()+1),preeven(l.size()+1);
+    for(int i=1; i<=l.size(); ++i) {
+        preeven[i]=preeven[i-1];
+        preodd[i]=preodd[i-1];
+        if(l[i-1]&1) ++preodd[i];
+        else ++preeven[i];
     }
+    long long ans=0;
+    for(auto[u,v]:ump) {ans+=((1ll*v*(v-1))>>1);}
+    for(int i=0; i<r.size(); ++i) {
+        long long t1=r[i],t2=r[i]+1ll*(k<<1);
+        int p1=upper_bound(all(l),t1)-l.begin(),p2=upper_bound(all(l),t2)-l.begin();
+        //ans+=p2-p1;
+        --p2;
+        if(p2<p1) continue;
+        if(t1&1) ans+=preodd[p2+1]-preodd[p1];
+        else ans+=preeven[p2+1]-preeven[p1];
+        //cerr << ans << ' ' << p1 << ' ' << p2 << ' ' << t1 << ' ' << t2 << '\n';
+    }
+    cout << ans;
     return 0; 
 
 } 

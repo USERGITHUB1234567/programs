@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,37 +45,53 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+class disjoint_set_union{
+private:
+    int n,mxk;
+    vector<int>mx,mn;
+    vector<vector<int>>lab;
+public:
+    disjoint_set_union(int _n) {init(_n);}
+    void init(int _n) {
+        n=_n;
+        mxk=32-__builtin_clz(n);
+        lab.assign(mxk,vector<int>(n+1,-1));
+        mx.resize(n+1),mn.resize(n+1);
+        for(int i=1; i<=n; ++i) mx[i]=mn[i]=i;
+    }
+    inline int root(int k, int u) {return lab[k][u]<0?u:root(k,lab[k][u]);}
+    inline void unite(int k, int u, int v) {
+        u=root(k,u),v=root(k,v);
+        if(u==v) return;
+        if(lab[k][u]>lab[k][v]) swap(u,v);
+        lab[k][u]+=lab[k][v];
+        lab[k][v]=u;
+        if(k==0) {mn[u]=min(mn[u],mn[v]),mx[u]=max(mx[u],mx[v]);}
+        else {
+            unite(k-1,u,v);
+            unite(k-1,u+(1<<(k-1)),v+(1<<(k-1)));
+        }
+    }
+    inline pair<int,int>query(int u) {u=root(0,u);return {mn[u],mx[u]};}
+};
+int n,q;
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
-    for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
+    cin >> n >> q;
+    disjoint_set_union dsu(n);
+    while(q--) {
+        int t;cin >> t;
+        if(t==1) {
+            int u;cin >> u;
+            pair<int,int>ans=dsu.query(u);
+            cout << ans.fi << ' ' << ans.se << '\n';
         }
         else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
-            }
-            else curv=it->second;
+            int l,r,len;cin >> l >> r >> len;
+            int k=31-__builtin_clz(len);
+            dsu.unite(k,l,r);
+            dsu.unite(k,l+len-(1<<k),r+len-(1<<k));
         }
-        st[i]=curv;
-        cerr << st[i] << ' ';
-    }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
     }
     return 0; 
 

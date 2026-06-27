@@ -60,7 +60,7 @@ class disjoint_set_union{
             u=root(u),v=root(v);
             if(u!=v) {
                 if(lab[u]>lab[v]) swap(u,v);
-                lab[u]+=v;
+                lab[u]+=lab[v];
                 lab[v]=u;
             }
         }

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=500005,mod=1000000007,maxb=320; 
+const int maxn=1003,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -45,37 +45,55 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,k,q,a[maxn],st[maxn],val[maxn],p[maxn];
-map<int,int>adj[maxn];
+int tc;
+namespace solver{
+    bool f[2][maxn][115];
+    int base=55,mxv=115;
+    inline void solve(int& n, int& h, int& w,vector<int>&x, vector<int>&s, vector<int>e) {
+        vector<pair<int,int>>barrier(n,{0,h-1});
+        for(int i=0; i<w; ++i) {barrier[x[i]]={s[i],e[i]};}
+        int ch=(h>>1);
+        memset(f,false,sizeof(f));
+        f[0][ch][base]=true;
+        int lim=sqrt(h);
+        for(int i=0; i<n-1; ++i) {
+            int cur=i&1,nxt=(cur+1)&1;
+            for(int j=0; j<h; ++j) {
+                for(int v=0; v<=mxv; ++v) {
+                    f[nxt][j][v]=false;
+                }
+            }
+            for(int j=0; j<h; ++j) {
+                if(j>barrier[i].se || j<barrier[i].fi) continue;
+                for(int v=0; v<=93; ++v) {
+                    if(!f[cur][j][v]) continue;
+                    int rv=v-base;
+                    //cerr << i << ' ' << j << ' ' << v << ' ' << f[i][j][v] << '\n';
+                    if(j+rv>=0 && j+rv<h && j+rv>=barrier[i+1].fi && j+rv<=barrier[i+1].se) f[nxt][j+rv][v]=true;
+                    if(j+rv+1>=0 && j+rv+1<h && j+rv+1>=barrier[i+1].fi && j+rv+1<=barrier[i+1].se) f[nxt][j+rv+1][v+1]=true;
+                    if(j+rv-1>=0 && j+rv-1<h && j+rv-1>=barrier[i+1].fi && j+rv-1<=barrier[i+1].se) f[nxt][j+rv-1][v-1]=true;
+                }
+            }
+        }
+        bool ck=false,l=(n-1)&1;
+        for(int i=0; i<h; ++i) {
+            for(int v=0; v<=93; ++v) if(f[l][i][v]) {ck=true;break;}
+            if(ck) break;
+        }
+        cout << (ck?"YES":"NO") << '\n';
+    }
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> k;
-    for(int i=1; i<=n; ++i) cin >> a[i];
-    int nver=0,curv=0;
-    for(int i=1; i<=n; ++i) {
-        //cerr << cur << ' ' << a[i] << ' ';
-        if(curv!=0 && 1ll*val[curv]+a[i]==k) {
-            curv=p[curv];
-        }
-        else {
-            auto it=adj[curv].find(a[i]);
-            if(it==adj[curv].end()) {
-                ++nver;
-                adj[curv][a[i]]=nver;
-                p[nver]=curv;
-                val[nver]=a[i];
-                curv=nver;
-            }
-            else curv=it->second;
-        }
-        st[i]=curv;
-        cerr << st[i] << ' ';
-    }
-    cin >> q;
-    while(q--) {
-        int l,r;cin >> l >> r;
-        if(l==1) cout << (st[r]==0?"YES":"NO") << '\n';
-        else cout << (st[l-1]==st[r]?"YES":"NO") << '\n';
+    cin >> tc;
+    while(tc--) {
+        int n,h,w;cin >> n >> h >> w;
+        vector<int>x,s,e;
+        x.reserve(w),s.reserve(w),e.reserve(w);
+        for(int i=1,v; i<=w; ++i) {cin >> v;x.pb(v);}
+        for(int i=1,v; i<=w; ++i) {cin >> v;s.pb(v);}
+        for(int i=1,v; i<=w; ++i) {cin >> v,e.pb(v);}
+        solver::solve(n,h,w,x,s,e);
     }
     return 0; 
 
