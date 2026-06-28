@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=300005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,88 +37,49 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,a[maxn];
-namespace soup1{
-    void solve() {
-        int ans=0;
-        for(int x=1; x<m; ++x) {
-            for(int y=x+1; y<=m; ++y) {
-                int cur=-1,nxt=-1;
-                for(int i=1; i<=n; ++i) {
-                    if((a[i]==x || a[i]==y) && cur==-1) {
-                        nxt=a[i];
-                        cur=(x+y)-a[i];
-                        ++ans;
-                        //cerr << x << ' ' << y << ' ' << a[i] << '\n';
-                        //cerr << a[i] << ' ';
-                    }
-                    else if(a[i]==cur) {++ans,swap(cur,nxt);}
-                }
-                //cerr << ans << '\n';
-            }
-        }
-        cout << ans;
+int n,res[maxn],sz[maxn];
+bool del[maxn],ck=true;
+vector<int>adj[maxn];
+inline void dfs_sz(int u, int p) {
+    sz[u]=1;
+    for(int v:adj[u]) {
+        if(v!=p && !del[v]) {dfs_sz(v,u);sz[u]+=sz[v];}
     }
 }
-class fenwick_tree{
-    private:
-        int n;
-        vector<int>ft;
-    public:
-        fenwick_tree(int _n):n(_n+1) {ft.resize(n);}
-        void update(int i, int v) {
-            while(i<n) {
-                ft[i]+=v;
-                i+=i&-i;
-            }
+inline int centroid(int u, int p, int tot) {
+    for(int v:adj[u]) {
+           if(v!=p && !del[v] && sz[v]>tot/2) return centroid(v,u,tot);
+    }
+    return u;
+}
+inline void solve(int u, int cur) {
+    if(cur==26) {ck=false;}
+    if(!ck) return;
+    
+    dfs_sz(u,0);
+    int tot = sz[u];
+    int r=centroid(u,0,tot);
+    //cerr << u << ' ' << r << '\n';
+    res[r]=cur;
+    del[r]=true;
+        for(int v:adj[r]) {
+        if(!del[v]) {
+            solve(v,cur+1);
         }
-        int sum(int i) {
-            int res=0;
-            while(i) {
-                res+=ft[i];
-                i-=i&-i;
-            }
-            return res;
-        }
-        int range(int l, int r) {return sum(r)-(l-1>=1?sum(l-1):0);}
-};
-namespace soupfull{
-    vector<int>val;
-    int mk[maxn];
-    void solve() {
-        long long ans=0;
-        // val.pb(a[1]);
-        // for(int i=2; i<=n; ++i) {
-        //     if(a[i]!=a[i-1]) val.pb(a[i]);
-        // }
-        fenwick_tree ft(n);
-        set<int>st;
-        for(int i=1; i<=n; ++i) {
-            st.insert(a[i]);
-            ans+=ft.range(mk[a[i]]+1,i);
-            //cerr << ans << ' ' << mk[a[i]] << '\n';
-            if(mk[a[i]]) {ft.update(mk[a[i]],-1);}
-            mk[a[i]]=i;
-            ft.update(i,1);
-            
-        }
-        ll x=st.size();
-        ans+=((x-1)*x)>>1;
-        ans+=x*(m-x);
-        cout << ans;
     }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> m;for(int i=1; i<=n; ++i) cin >> a[i];
-    soupfull::solve();
+    cin >> n;
+    for(int i=1,u,v; i<n; ++i) {
+        cin >> u >> v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    solve(1,0);
+    if(!ck) cout << "Hetcuu!";
+    else {for(int i=1; i<=n; ++i) cout << char(res[i]+'A') << ' ';}
     return 0; 
 
 } 
-/*
-1 2: 1 2
-
-5 4
-3 2 1 3 2
-*/
 /**/
