@@ -43,7 +43,10 @@ bool del[maxn];
 inline void dfs_sz(int u, int p) {
     sz[u]=1;
     for(int v:adj[u]) {
-        if(v!=p && !del[v]) {dfs_sz(v,u);sz[u]+=sz[v];}
+        if(v!=p && !del[v]) {
+            dfs_sz(v,u);
+            sz[u]+=sz[v];
+        }
     }
 }
 inline int centroid(int u, int p, int tot) {
@@ -77,6 +80,8 @@ int main(int argc, char** argv) {
             self(self,v,u);
         }
     };
+    d[1]=0;
+    up[1][0]=0;
     dfs_lca(dfs_lca,1,0);
     int logn=32-__builtin_clz(n);
     for(int j=1; j<=logn; ++j) {
@@ -99,7 +104,6 @@ int main(int argc, char** argv) {
         return up[u][0];
     };
     auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    
     build(1,0);
     for(int i=1; i<=n; ++i) mn[i]=1e9;
     auto update=[&](int u) {
