@@ -37,16 +37,14 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
+int n,m,sz[maxn],d[maxn],up[maxn][20],par[maxn],mn[maxn];
 vector<int>adj[maxn];
 bool del[maxn];
-inline void dfs_sz(int u, int p) {
+inline int dfs_sz(int u, int p) {
     sz[u]=1;
     for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
-        }
+        if(v!=p && !del[v]) dfs_sz(v,u);
+        sz[u]+=sz[v];
     }
 }
 inline int centroid(int u, int p, int tot) {
@@ -61,7 +59,7 @@ inline void build(int u, int p) {
     par[r]=p;
     del[r]=true;
     for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
+        if(!del[v] && v!=p) build(v,r);
     }
 }
 int main(int argc, char** argv) { 
@@ -72,7 +70,7 @@ int main(int argc, char** argv) {
         adj[u].pb(v);
         adj[v].pb(u);
     }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
+    auto dfs_lca=[&](auto &self, int u, int p)->void {
         for(int v:adj[u]) {
             if(v==p) continue;
             d[v]=d[u]+1;
@@ -80,9 +78,7 @@ int main(int argc, char** argv) {
             self(self,v,u);
         }
     };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
-    logn=32-__builtin_clz(n);
+    int logn=32-__builtin_clz(n);
     for(int j=1; j<=logn; ++j) {
         for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
     }
@@ -95,31 +91,44 @@ int main(int argc, char** argv) {
         }
         if(u==v) return u;
         for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
+            if(up[u][i]!=up[v][i]) {
+                u=up[u][i];
+                v=up[v][i];
+            }
         }
         return up[u][0];
     };
     auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
+    dfs_lca(dfs_lca,1,0);
+    build(1,0);
+    for(int i=1; i<=n; ++i) mn[i]=1e9;
     auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
+        for(int cur=u; cur; cur=par[cur]) {
+            mn[cur]=min(mn[cur],dist(u,cur));
         }
     };
     auto query=[&](int u) {
         int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
+        for(int cur=u; cur; cur=par[cur]) {
+            res=min(res,dist(u,cur)+mn[cur]);
         }
         return res;
     };
-    build(1,0);
     update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
+    for(int i=1; i<=m; ++i) {
+        int t,j;cin >> t >> j;
+        if(t==1) update(j);
+        else cout << query(j) << '\n';
     }
     return 0; 
 
 } 
 /**/
+/*
+3 3
+1 2
+2 3
+2 3
+1 2
+2 3
+*/

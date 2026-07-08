@@ -37,88 +37,49 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
-vector<int>adj[maxn];
-bool del[maxn];
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
+int n,m,q,w[maxn],query[maxn];
+vector<pair<int,int>>adj[maxn];
+namespace souptrau{
+    int d[2][maxn];
+    inline void dijkstra(int st, bool b) {
+        priority_queue<pair<int,int>,vector<pair<int,int>>,greater<pair<int,int>>>pq;
+        for(int i=1; i<=n; ++i) d[b][i]=INT_MAX;
+        pq.push({0,st});
+        d[b][st]=0;
+        while(!pq.empty()) {
+            auto[cd,u]=pq.top();pq.pop();
+            if(cd>d[b][u]) continue;
+            for(auto[v,i]:adj[u]) {
+                if(d[b][v]>d[b][u]+w[i]) {
+                    d[b][v]=d[b][u]+w[i];
+                    pq.push({d[b][v],v});
+                }
+            }
         }
     }
-}
-inline int centroid(int u, int p, int tot) {
-    for(int v:adj[u]) {
-        if(v!=p && !del[v] && sz[v]>(tot>>1)) return centroid(v,u,tot);
-    }
-    return u;
-}
-inline void build(int u, int p) {
-    dfs_sz(u,0);
-    int r=centroid(u,0,sz[u]);
-    par[r]=p;
-    del[r]=true;
-    for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
+    void solve() {
+        for(int i=1; i<=m; ++i) w[i]=6;
+        dijkstra(1,0);
+        // for(int i=1; i<=n; ++i) cout << d[0][i] << ' ';
+        // cout << '\n';
+        for(int t=1; t<=q; ++t) {
+            ++w[query[t]];
+            int cnt=n-1;
+            dijkstra(1,1);
+            for(int i=2; i<=n; ++i) if(d[1][i]>d[0][i]) --cnt;
+            cout << cnt << '\n';
+        }
     }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> m;
-    for(int i=1,u,v; i<n; ++i) {
+    file("bus")
+    cin >> n >> m >> q;
+    for(int i=1,u,v; i<=m; ++i) {
         cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
-    }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p) continue;
-            d[v]=d[u]+1;
-            up[v][0]=u;
-            self(self,v,u);
-        }
-    };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
-    logn=32-__builtin_clz(n);
-    for(int j=1; j<=logn; ++j) {
-        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
-    }
-    auto lca=[&](int u, int v) {
-        if(d[u]<d[v]) swap(u,v);
-        int dif=d[u]-d[v];
-        for(int i=dif; i; i&=(i-1)) {
-            int j=__builtin_ctz(i);
-            u=up[u][j];
-        }
-        if(u==v) return u;
-        for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
-        }
-        return up[u][0];
-    };
-    auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
-        }
-    };
-    auto query=[&](int u) {
-        int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
-        }
-        return res;
-    };
-    build(1,0);
-    update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
-    }
+        adj[u].pb({v,i}),adj[v].pb({u,i});
+    }for(int i=1; i<=q; ++i) cin >> query[i];
+    souptrau::solve();
     return 0; 
 
 } 

@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=300005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,88 +37,77 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
+int n,k,tin[maxn],timer=0,d[maxn],up[maxn][20],logn,cur;
 vector<int>adj[maxn];
-bool del[maxn];
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
+set<pair<int,int>>st;
+inline void dfs(int u, int p) {
+    tin[u]=++timer;
     for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
-        }
-    }
-}
-inline int centroid(int u, int p, int tot) {
-    for(int v:adj[u]) {
-        if(v!=p && !del[v] && sz[v]>(tot>>1)) return centroid(v,u,tot);
-    }
-    return u;
-}
-inline void build(int u, int p) {
-    dfs_sz(u,0);
-    int r=centroid(u,0,sz[u]);
-    par[r]=p;
-    del[r]=true;
-    for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
-    }
-}
-int main(int argc, char** argv) { 
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> m;
-    for(int i=1,u,v; i<n; ++i) {
-        cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
-    }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p) continue;
+        if(v!=p) {
             d[v]=d[u]+1;
             up[v][0]=u;
-            self(self,v,u);
+            dfs(v,u);
         }
-    };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
+    }
+}
+inline int lca(int u, int v) {
+    if(d[u]<d[v]) swap(u,v);
+    int dif=d[u]-d[v];
+    for(int i=dif; i; i&=(i-1)) {
+        int j=__builtin_ctz(i);
+        u=up[u][j];
+    }
+    if(u==v) return u;
+    for(int i=logn; i>=0; --i) {
+        if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
+    }
+    return up[u][0];
+}
+inline int dist(int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);}
+inline void add(int u) {
+    if(st.empty()) {st.insert({tin[u],u});return;}
+    auto it=st.insert({tin[u],u}).fi,prv=it,nxt=it;
+    if(prv==st.begin()) prv=st.end();
+    --prv;
+    ++nxt;
+    if(nxt==st.end()) nxt=st.begin();
+    int x=prv->second,y=nxt->second;
+    cur+=dist(u,x)+dist(u,y)-dist(x,y);
+}
+inline void rem(int u) {
+    auto it=st.find({tin[u],u});
+    if(st.size()==1) {st.erase(it);return;}
+    auto prv=it,nxt=it;
+    if(prv==st.begin()) prv=st.end();
+    --prv;
+    ++nxt;
+    if(nxt==st.end()) nxt=st.begin();
+    int x=prv->second,y=nxt->second;
+    cur-=dist(u,x)+dist(u,y)-dist(x,y);
+    st.erase(it);
+}
+inline int get_sz() {return st.empty()?0:(cur>>1)+1;}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> k;
+    for(int i=1,u,v; i<n; ++i) {cin >> u >> v;adj[u].pb(v),adj[v].pb(u);}
     logn=32-__builtin_clz(n);
+    dfs(0,0);
     for(int j=1; j<=logn; ++j) {
-        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
+        for(int i=0; i<n; ++i) {
+            up[i][j]=up[up[i][j-1]][j-1];
+        }
     }
-    auto lca=[&](int u, int v) {
-        if(d[u]<d[v]) swap(u,v);
-        int dif=d[u]-d[v];
-        for(int i=dif; i; i&=(i-1)) {
-            int j=__builtin_ctz(i);
-            u=up[u][j];
+    int ans=0;
+    for(int l=0,r=0; r<n; ++r) {
+        add(r);
+        while(get_sz()>k) {
+            rem(l++);
         }
-        if(u==v) return u;
-        for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
-        }
-        return up[u][0];
-    };
-    auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
-        }
-    };
-    auto query=[&](int u) {
-        int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
-        }
-        return res;
-    };
-    build(1,0);
-    update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
+        if(l>r) break;
+        ans=max(ans,r-l+1);
     }
+    cout << ans;
     return 0; 
 
 } 

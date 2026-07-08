@@ -16,20 +16,12 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=300005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
     inline ll __logarit(ll k, ll n){ll res=0;while(n>0){n/=k;++res;}return res;} 
     inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e>0) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
-    inline int maxi(int a, int b) {return (a>b?a:b);} 
-    inline int mini(int a, int b) {return (a<b?a:b);} 
-    inline ll maxill(ll a, ll b) {return (a>b?a:b);} 
-    inline ll minill(ll a, ll b) {return (a<b?a:b);} 
-    inline double maxid(double a, double b) {return (a>b?a:b);} 
-    inline double minid(double a, double b) {return (a<b?a:b);} 
-    inline ld maxild(ld a, ld b) {return (a>b?a:b);} 
-    inline ld minild(ld a, ld b) {return (a<b?a:b);} 
     void setUpFactor() { fact[0]=1; for(int i=1; i<maxn; ++i) fact[i]=fact[i-1]*i%mod; int tc=maxn-1; ifact[tc]=modexp(fact[tc],mod-2,mod); for(int i=tc; i>=1; --i) ifact[i-1]=ifact[i]*i%mod; } 
     inline long long ncr(long long k, long long n) {return (k==n?1:fact[n]*ifact[n-k]%mod*ifact[k]%mod);} 
     inline int lomuto_partition(vector<int>&a, int l, int r) {int pivot=a[r],i=l-1;for(int j=l; j<r; ++j) {if(a[j]<=pivot) {++i;swap(a[i],a[j]);}}swap(a[r],a[i+1]);return i+1;} 
@@ -45,10 +37,86 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
+int n,q,a[maxn];
+struct query{int fi,se,id;}qu[maxn];
+namespace souptrau{
+    void solve() {
+
+    }
+}
+namespace soupfullrua{
+    unordered_map<int,vector<int>>ump;
+    long long val[maxn],prehash[maxn];
+    int block_size=550;
+    long long cur=0,ans[maxn];
+    int cnt[maxn];
+    inline void add(int i) {
+        cur+=cnt[i];
+        //cur-=cnt[i];
+        ++cnt[i];
+        
+    }
+    inline void rem(int i) {
+        //cur-=cnt[i];
+        --cnt[i];
+        cur-=cnt[i];
+    }
+    void solve() {
+        vector<pair<int, int>> topics(n);
+        for(int i=1; i<=n; ++i) topics[i-1] = {a[i], i};
+        sort(all(topics));
+        
+        for(int i=0; i<n; ) {
+            int j = i;
+            while(j < n && topics[j].fi == topics[i].fi) ++j;
+            
+            long long pre = 0;
+            for(int k=i; k<j-1; ++k) {
+                int idx = topics[k].se;
+                val[idx] = generator1();
+                pre ^= val[idx];
+            }
+            int last_idx = topics[j-1].se;
+            val[last_idx] = pre;
+            i = j;
+        }
+        for(int i=1; i<=n; ++i) prehash[i]=val[i]^prehash[i-1];
+        vector<long long>allpre;
+        for(int i=0; i<=n; ++i) allpre.pb(prehash[i]);
+        sortunique(allpre);
+        auto get_id=[&](long long t) {return lower_bound(all(allpre),t)-allpre.begin();};
+        sort(qu+1, qu+1+q, [&](const query& x, const query& y){
+            int bl_a=x.fi/block_size;
+            int bl_b=y.fi/block_size;
+            if (bl_a!=bl_b) return bl_a<bl_b;
+            return (bl_a&1)?x.se<y.se:x.se>y.se;
+        });
+        for(int i=0; i<=n; ++i) a[i]=get_id(prehash[i]);
+        //for(int i=0; i<=n; ++i) cerr << a[i] << ' ';
+        int l=1,r=0;
+        for(int i=1; i<=q; ++i) {
+            auto[u,v,id]=qu[i];
+            while(r<v) {++r;add(a[r]);}
+            while(l<u) {rem(a[l]);++l;}
+            while(r>v) {rem(a[r]);--r;}
+            while(l>u) {--l;add(a[l]);}
+            // while(l > u) { --l; add(a[l]); }
+            // while(r < v) { ++r; add(a[r]); }
+            // while(l < u) { rem(a[l]); ++l; }
+            // while(r > v) { rem(a[r]); --r; }
+            ans[id]=cur;
+        }
+        for(int i=1; i<=q; ++i) cout << ans[i] << '\n';
+    }
+}
 
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    
+    file("post")
+    cin >> n >> q;
+    for(int i=1; i<=n; ++i) cin >> a[i];
+    for(int i=1; i<=q; ++i) {cin >> qu[i].fi >> qu[i].se;qu[i].id=i;--qu[i].fi;}
+    soupfullrua::solve();
     return 0; 
 
 } 

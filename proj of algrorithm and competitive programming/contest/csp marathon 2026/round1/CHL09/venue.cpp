@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=1000006,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,89 +37,86 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
-vector<int>adj[maxn];
-bool del[maxn];
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
+int n,m,a[maxn];
+namespace soup1{
+    inline int dist(int x, int i) {
+        int j=a[i];
+        if(x>j) swap(x,j);
+        return min(j-x,m-j+x);
+    }
+    int f(int x) {
+        int res=0;
+        for(int i=1; i<=n; ++i) {
+            res=max(res,dist(x,i));
         }
+        return res;
+    }
+    void solve() {
+        int mn=INT_MAX,res;
+        for(int i=1; i<=m; ++i) {
+            //cout << f(i) << ' ';
+            if(f(i)<mn) {
+                mn=f(i);
+                res=i;
+            }
+        }
+        //cout << '\n';
+        cout << mn << ' ' << res;
+        //cout << '\n' << f(34);
     }
 }
-inline int centroid(int u, int p, int tot) {
-    for(int v:adj[u]) {
-        if(v!=p && !del[v] && sz[v]>(tot>>1)) return centroid(v,u,tot);
+namespace soupfull{
+    inline int clocwise_dist(int i, int j) {
+        int x=a[i],y=a[j];
+        if(x<=y) return y-x;
+        else return m-x+y;
     }
-    return u;
-}
-inline void build(int u, int p) {
-    dfs_sz(u,0);
-    int r=centroid(u,0,sz[u]);
-    par[r]=p;
-    del[r]=true;
-    for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
+    inline int getans(int i, int j, int d) {
+        int x=a[i],y=a[j];
+        swap(x,y);
+        int res;
+        if(x<y) res=x+d;
+        else res=x+d;
+        if(res>m) res-=m;
+        return res;
+    }
+    void solve() {
+        sort(a+1,a+1+n);
+        int ans=INT_MAX,p;
+        for(int i=1; i<=n; ++i) {
+            int j=(i+1<=n?i+1:1);
+            int d=clocwise_dist(i,j)-1,rd=(m-d)>>1;
+            //cout << d << ' ' << rd << '\n';
+            //ans=min(ans,rd);
+            if(rd<ans) {
+                ans=rd;
+                p=getans(i,j,rd);
+            }
+        }
+        cout << ans << ' ' << p;
     }
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> m;
-    for(int i=1,u,v; i<n; ++i) {
-        cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
-    }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p) continue;
-            d[v]=d[u]+1;
-            up[v][0]=u;
-            self(self,v,u);
-        }
-    };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
-    logn=32-__builtin_clz(n);
-    for(int j=1; j<=logn; ++j) {
-        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
-    }
-    auto lca=[&](int u, int v) {
-        if(d[u]<d[v]) swap(u,v);
-        int dif=d[u]-d[v];
-        for(int i=dif; i; i&=(i-1)) {
-            int j=__builtin_ctz(i);
-            u=up[u][j];
-        }
-        if(u==v) return u;
-        for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
-        }
-        return up[u][0];
-    };
-    auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
-        }
-    };
-    auto query=[&](int u) {
-        int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
-        }
-        return res;
-    };
-    build(1,0);
-    update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
-    }
+    file("venue")
+    cin >> n >> m;for(int i=1; i<=n; ++i) cin >> a[i];
+    if(n<=1000 && m<=1000)soup1::solve();
+    //cout << '\n';
+    else soupfull::solve();
     return 0; 
 
 } 
 /**/
+/*
+4 18
+12 3 9 5
+
+8 13
+11 8 3 13 6 10 12 7
+
+10 27
+1 8 19 23 17 26 4 9 24 5
+
+12 39
+4 8 2 7 5 12 35 28 9 14 27 28
+*/

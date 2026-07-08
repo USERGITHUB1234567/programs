@@ -113,9 +113,35 @@ namespace soup2and3{
         }
     }
 }
+struct fenwick_tree{
+    vector<long long>bit;
+    int n;
+    fenwick_tree(int _n):n(_n) {bit.resize(n+1);}
+    inline void update(int i, long long v) {
+        while(i<=n) {
+            bit[i]+=v;
+            i+=i&-i;
+        }
+    }
+    inline long long sum(int i) {
+        long long res=0;
+        while(i) {
+            res+=bit[i];
+            i-=i&-i;
+        }
+        return res;
+    }
+};
 namespace soupfull{
-    void solve() {
+    inline int findSmallestWeight() {
         
+    }
+    inline bool check() {
+
+    }
+    void solve() {
+        fenwick_tree smallCnt(n),smallSum(n),bigCnt(n),bigSum(n);
+
     }
 }
 int main(int argc, char** argv) { 

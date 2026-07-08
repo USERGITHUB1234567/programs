@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=202,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,88 +37,72 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
-vector<int>adj[maxn];
-bool del[maxn];
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
+const long long inf=LLONG_MAX;
+struct dinitz{
+    int n,m,s,t;
+    vector<int>ptr,d;
+    long long total=0;
+    vector<vector<long long>>cap,flow;
+    vector<vector<int>>adj;
+    dinitz(int _n, int _m, int _s, int _t):n(_n),m(_m),s(_s),t(_t) {
+        cap.assign(n+1,vector<long long>(n+1));
+        flow.assign(n+1,vector<long long>(n+1));
+        d.assign(n+1,0);
+        ptr.assign(n+1,0);
+        adj.assign(n+1,{});
+    }
+    inline void bfs(const int& s, const int& t) {
+        queue<int>q;
+        q.push(s);
+        fill(all(d),-1);
+        d[s]=0;
+        while(!q.empty()) {
+            int u=q.front();q.pop();
+            for(int v:adj[u]) {
+                if(d[v]==-1 && flow[u][v]<cap[u][v]) {
+                    d[v]=d[u]+1;
+                    q.push(v);
+                }
+            }
         }
     }
-}
-inline int centroid(int u, int p, int tot) {
-    for(int v:adj[u]) {
-        if(v!=p && !del[v] && sz[v]>(tot>>1)) return centroid(v,u,tot);
+    inline long long dfs(int u, int t, long long f) {
+        if(f==0 || u==t) return f;
+        for(;ptr[u]<adj[u].size(); ++ptr[u]) {
+            int v=adj[u][ptr[u]];
+            if(d[v]!=d[u]+1 || flow[u][v]==cap[u][v]) continue;
+            long long push=dfs(v,t,min(f,cap[u][v]-flow[u][v]));
+            if(push) {
+                flow[u][v]+=push;
+                flow[v][u]-=push;
+                return push;
+            }
+        }
+        return 0;
     }
-    return u;
-}
-inline void build(int u, int p) {
-    dfs_sz(u,0);
-    int r=centroid(u,0,sz[u]);
-    par[r]=p;
-    del[r]=true;
-    for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
+    long long maxflow(int s, int t) {
+        total=0;
+        while(true) {
+            bfs(s,t);
+            if(d[t]==-1) break;
+            fill(all(ptr),0);
+            while(long long push=dfs(s,t,inf)) total+=push;
+        }
+        return total;
     }
-}
+};
+int n,m;
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n >> m;
-    for(int i=1,u,v; i<n; ++i) {
-        cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
+    cin >> m >> n;
+    dinitz d(n,m,1,n);
+    for(int i=1,u,v,w; i<=m; ++i) {
+        cin >> u >> v >> w;
+        d.adj[u].pb(v);
+        d.adj[v].pb(u);
+        d.cap[u][v]+=w;
     }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p) continue;
-            d[v]=d[u]+1;
-            up[v][0]=u;
-            self(self,v,u);
-        }
-    };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
-    logn=32-__builtin_clz(n);
-    for(int j=1; j<=logn; ++j) {
-        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
-    }
-    auto lca=[&](int u, int v) {
-        if(d[u]<d[v]) swap(u,v);
-        int dif=d[u]-d[v];
-        for(int i=dif; i; i&=(i-1)) {
-            int j=__builtin_ctz(i);
-            u=up[u][j];
-        }
-        if(u==v) return u;
-        for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
-        }
-        return up[u][0];
-    };
-    auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
-        }
-    };
-    auto query=[&](int u) {
-        int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
-        }
-        return res;
-    };
-    build(1,0);
-    update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
-    }
+    cout << d.maxflow(1,n);
     return 0; 
 
 } 

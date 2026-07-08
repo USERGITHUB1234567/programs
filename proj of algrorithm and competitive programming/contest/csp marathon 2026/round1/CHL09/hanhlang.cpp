@@ -37,89 +37,82 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m,sz[maxn],par[maxn],up[maxn][20],d[maxn],mn[maxn],logn;
-vector<int>adj[maxn];
-bool del[maxn];
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(int v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
+int n,m,c[22];
+struct port{int t,x,d;}p[22];
+namespace souprua{
+    void solve() {
+        for(int i=1; i<=m; ++i) {
+            cout << -1 << '\n';
         }
     }
 }
-inline int centroid(int u, int p, int tot) {
-    for(int v:adj[u]) {
-        if(v!=p && !del[v] && sz[v]>(tot>>1)) return centroid(v,u,tot);
+namespace souptrau1{
+    vector<int>adj[maxn];
+    set<int>tin[22];
+    void bfs() {
+        for(int i=0; i<21; ++i) tin[i].insert(0);
+        for(int i=0; i<=n; ++i) {
+            vector<int>tmp;
+            //cerr << tin[i].size() <<  ' ';
+            for(int f:tin[i]) tmp.pb(f);
+            for(int v:tin[i]) {
+                for(int k=1; k<=n; ++k) {
+                    auto[t,x,d]=p[k];
+                    if(d!=i) continue;
+                    int u;
+                    if(t==1) u=v+x;
+                    else u=(t<<1)%x;
+                    //cerr << i << ' ' << v << ' ' << u << '\n';
+                    tmp.pb(u);
+                }
+            }
+            for(int f:tmp) {
+                tin[i].insert(f);
+                tin[i+1].insert(f);
+            }
+        }
     }
-    return u;
+    int ans[100005];
+    void solve() {
+        for(int i=1; i<=m; ++i) ans[i]=-1;
+        bfs();
+        for(int i=0; i<=n; ++i) {
+            for(int j:tin[i]) {
+                if(ans[j]==-1) ans[j]=i;
+                //cout << j << ' ';
+            }
+            //cout << '\n';
+        }
+        
+        for(int i=1; i<=m; ++i) cout << ans[i] << '\n';
+    }
 }
-inline void build(int u, int p) {
-    dfs_sz(u,0);
-    int r=centroid(u,0,sz[u]);
-    par[r]=p;
-    del[r]=true;
-    for(int v:adj[r]) {
-        if(v!=p && !del[v]) build(v,r);
-    }
+namespace souptrau2{
+
 }
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    file("hanhlang")
+    //for(int i=0; i<=100; ++i) cout << (i<<1)%16 << '\n';
     cin >> n >> m;
-    for(int i=1,u,v; i<n; ++i) {
-        cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
-    }
-    auto dfs_lca=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p) continue;
-            d[v]=d[u]+1;
-            up[v][0]=u;
-            self(self,v,u);
-        }
-    };
-    for(int i=1; i<=n; ++i) mn[i]=1e9;
-    dfs_lca(dfs_lca,1,0);
-    logn=32-__builtin_clz(n);
-    for(int j=1; j<=logn; ++j) {
-        for(int i=1; i<=n; ++i) up[i][j]=up[up[i][j-1]][j-1];
-    }
-    auto lca=[&](int u, int v) {
-        if(d[u]<d[v]) swap(u,v);
-        int dif=d[u]-d[v];
-        for(int i=dif; i; i&=(i-1)) {
-            int j=__builtin_ctz(i);
-            u=up[u][j];
-        }
-        if(u==v) return u;
-        for(int i=logn; i>=0; --i) {
-            if(up[u][i]!=up[v][i]) u=up[u][i],v=up[v][i];
-        }
-        return up[u][0];
-    };
-    auto dist=[&](int u, int v) {return d[u]+d[v]-(d[lca(u,v)]<<1);};
-    auto update=[&](int u) {
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            mn[curr]=min(mn[curr],dist(u,curr));
-        }
-    };
-    auto query=[&](int u) {
-        int res=1e9;
-        for(int curr=u; curr!=0; curr=par[curr]) {
-            res=min(res,dist(u,curr)+mn[curr]);
-        }
-        return res;
-    };
-    build(1,0);
-    update(1);
-    for(int i=1,t,u; i<=m; ++i) {
-        cin >> t >> u;
-        if(t==1) update(u);
-        else cout << query(u) << '\n';
-    }
+    bool cks1=true;
+    for(int i=1; i<=n; ++i) {cin >> c[i];if(c[i]!=1)cks1=false;}
+    for(int i=1; i<=n; ++i) {cin >> p[i].t >> p[i].x >> p[i].d;}
+    if(cks1)souptrau1::solve();
+    else souprua::solve();
     return 0; 
 
 } 
 /**/
+/*
+6 7
+1 2 3 1 2 2
+1 5 1
+2 7 2
+1 3 2
+2 1 2
+1 1 3
+2 3 6
+
+
+*/
