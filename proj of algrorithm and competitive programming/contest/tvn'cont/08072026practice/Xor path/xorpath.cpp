@@ -77,7 +77,7 @@ inline void solve(int u) {
         if(!del[v]) solve(v);
     }
 }
-int main(int argc, char** argv) { 
+int main(int argc, char** argv) {
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> n;
     for(int i=1,u,v; i<n; ++i) {
