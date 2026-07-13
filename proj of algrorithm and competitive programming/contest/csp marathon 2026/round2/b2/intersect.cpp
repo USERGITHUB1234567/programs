@@ -10,14 +10,13 @@
 #define fi first 
 #define se second 
 #define pb push_back 
-#define int long long
 using namespace std; 
 using namespace std::chrono; 
 static const int maxd=1003; 
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=100005,mod=1000000007,maxb=320; 
+const int maxn=1200006,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -38,81 +37,53 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,a[maxn],sz[maxn],d[maxn],cnt[22][2];
-vector<int>adj[maxn];
-bool del[maxn];
-long long ans=0;
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(auto v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
+int n,k;
+struct couple{int l1,r1,l2,r2;}c[maxn];
+namespace soup1{
+    void solve() {
+        // sort(c+1,c+1+n,[&](couple a,couple b){
+        //     int da=max(0,a.l2-a.r1),db=max(0,b.l2-b.r1);
+        // });
+        int s=0,cost=0;
+        for(int i=1; i<=n; ++i) {
+            auto[l1,r1,l2,r2]=c[i];
+            s+=r1-max(l1,l2);
         }
+        if(s>=k) {cout << 0;return;}
+        //cerr << s << ' ';
+        for(int i=1; i<=n; ++i) {
+            auto[l1,r1,l2,r2]=c[i];
+            int add=max(max(r1,r2)-min(l1,l2),k-s);
+            s+=add;cost+=add;
+            if(s>=k) break;
+            
+        }
+        if(s<k) {cost+=(k-s)<<1;}
+        cout << cost;
     }
 }
-signed main(int argc, char** argv) { 
-    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;
-    for(int i=1; i<=n; ++i) {cin >> a[i];ans+=a[i];}
-    for(int i=1,u,v; i<n; ++i) {
-        cin >> u >> v;
-        adj[u].pb(v);
-        adj[v].pb(u);
+namespace soup2{
+    void solve() {
+        
     }
-    auto centroid=[&](auto& self, int u, int p, int tot)->int {
-        for(auto v:adj[u]) {
-            if(!del[v] && v!=p && sz[v]>(tot>>1)) return self(self,v,u,tot);
-        }
-        return u;
-    };
-    vector<int>node;
-    auto dfs=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p || del[v]) continue;
-            d[v]=d[u]^a[v];
-            node.pb(v);
-            self(self,v,u);
-        }
-    };
-    auto solve=[&](auto& self, int u)->void {
-        dfs_sz(u,0);
-        int r=centroid(centroid,u,0,sz[u]);
-        del[r]=true;
-        d[r]=a[r];
-        memset(cnt,0,sizeof(cnt));
-        for(int i=0; i<=20; ++i) {
-            bool bc=(a[r]&(1<<i));
-            ++cnt[i][bc];
-        }
-        for(int v:adj[r]) {
-            if(del[v]) continue;
-            node.clear();
-            d[v]=d[r]^a[v];
-            node.pb(v);
-            dfs(dfs,v,r);
-            for(int i=0; i<=20; ++i) {
-                bool bc=(a[r]&(1<<i));
-                for(int t:node) {
-                    bool bt=(d[t]&(1<<i));
-                    ans+=(1<<i)*(cnt[i][1^bc^bt]);
-                }
-            }
-            for(int t:node) {
-                for(int i=0; i<=20; ++i) {
-                    bool bt=(d[t]&(1<<i));
-                    ++cnt[i][bt];
-                }
-            }
-            node.clear();
-        }
-        for(int v:adj[r]) {
-            if(!del[v]) self(self,v);
-        }
-    };
-    solve(solve,1);
-    cout << ans;
+}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    file("intersect")
+    scanf("%d%d",&n,&k);
+    for(int i=1; i<=n; ++i) {
+        scanf("%d%d%d%d",&c[i].l1,&c[i].r1,&c[i].l2,&c[i].r2);
+        if(c[i].r1>c[i].r2) {swap(c[i].l1,c[i].l2);swap(c[i].r1,c[i].r2);}
+    }
+    soup1::solve();
     return 0; 
 
 } 
 /**/
+/*
+4 8
+1 4 9 11
+1 2 4 7
+1 2 3 4
+1 9 999 1000
+*/

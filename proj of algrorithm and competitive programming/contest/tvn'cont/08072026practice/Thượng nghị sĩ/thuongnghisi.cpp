@@ -10,7 +10,6 @@
 #define fi first 
 #define se second 
 #define pb push_back 
-#define int long long
 using namespace std; 
 using namespace std::chrono; 
 static const int maxd=1003; 
@@ -38,81 +37,67 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,a[maxn],sz[maxn],d[maxn],cnt[22][2];
+int n,k,sz[maxn],len[maxn];
 vector<int>adj[maxn];
-bool del[maxn];
-long long ans=0;
 inline void dfs_sz(int u, int p) {
     sz[u]=1;
-    for(auto v:adj[u]) {
-        if(v!=p && !del[v]) {
+    for(int v:adj[u]) {
+        if(v!=p) {
             dfs_sz(v,u);
             sz[u]+=sz[v];
         }
     }
 }
-signed main(int argc, char** argv) { 
+inline int centroid(int u, int p, int tot) {
+    for(int v:adj[u]) {
+        if(v!=p && sz[v]>(tot>>1)) return centroid(v,u,tot);
+    }
+    return u;
+}
+inline void dfs_len(int u, int p) {
+    for(int v:adj[u]) {
+        if(v!=p) {
+            dfs_len(v,u);
+            len[u]+=len[v]+sz[v];
+        }
+    }
+}
+int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;
-    for(int i=1; i<=n; ++i) {cin >> a[i];ans+=a[i];}
+    cin >> n >> k;
     for(int i=1,u,v; i<n; ++i) {
         cin >> u >> v;
         adj[u].pb(v);
         adj[v].pb(u);
     }
-    auto centroid=[&](auto& self, int u, int p, int tot)->int {
-        for(auto v:adj[u]) {
-            if(!del[v] && v!=p && sz[v]>(tot>>1)) return self(self,v,u,tot);
-        }
-        return u;
-    };
-    vector<int>node;
-    auto dfs=[&](auto& self, int u, int p)->void {
-        for(int v:adj[u]) {
-            if(v==p || del[v]) continue;
-            d[v]=d[u]^a[v];
-            node.pb(v);
-            self(self,v,u);
-        }
-    };
-    auto solve=[&](auto& self, int u)->void {
-        dfs_sz(u,0);
-        int r=centroid(centroid,u,0,sz[u]);
-        del[r]=true;
-        d[r]=a[r];
-        memset(cnt,0,sizeof(cnt));
-        for(int i=0; i<=20; ++i) {
-            bool bc=(a[r]&(1<<i));
-            ++cnt[i][bc];
-        }
-        for(int v:adj[r]) {
-            if(del[v]) continue;
-            node.clear();
-            d[v]=d[r]^a[v];
-            node.pb(v);
-            dfs(dfs,v,r);
-            for(int i=0; i<=20; ++i) {
-                bool bc=(a[r]&(1<<i));
-                for(int t:node) {
-                    bool bt=(d[t]&(1<<i));
-                    ans+=(1<<i)*(cnt[i][1^bc^bt]);
-                }
-            }
-            for(int t:node) {
-                for(int i=0; i<=20; ++i) {
-                    bool bt=(d[t]&(1<<i));
-                    ++cnt[i][bt];
-                }
-            }
-            node.clear();
-        }
-        for(int v:adj[r]) {
-            if(!del[v]) self(self,v);
-        }
-    };
-    solve(solve,1);
+    dfs_sz(1,0);
+    int r=centroid(1,0,sz[1]);//cerr << r << ' ';
+    dfs_sz(r,0);
+    dfs_len(r,0);
+    long long ans=len[r];
+    vector<int>val;
+    val.reserve(n);
+    for(int i=1; i<=n; ++i) val.pb(sz[i]);
+    sort(all(val),greater<int>());
+    for(int i=1; i<=k && i<val.size(); ++i) ans-=val[i];
+    //for(int i=1; i<=k; ++i) cerr << val[i] << ' ';
     cout << ans;
     return 0; 
 
 } 
 /**/
+/*
+13 3
+1 2
+2 3
+2 8
+7 8
+7 5
+5 4
+5 6
+8 9
+8 10
+10 11
+10 12
+10 13
+*/

@@ -10,7 +10,6 @@
 #define fi first 
 #define se second 
 #define pb push_back 
-#define int long long
 using namespace std; 
 using namespace std::chrono; 
 static const int maxd=1003; 
@@ -38,80 +37,42 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,a[maxn],sz[maxn],d[maxn],cnt[22][2];
+int n,k,col[maxn],num[maxn];
 vector<int>adj[maxn];
-bool del[maxn];
-long long ans=0;
-inline void dfs_sz(int u, int p) {
-    sz[u]=1;
-    for(auto v:adj[u]) {
-        if(v!=p && !del[v]) {
-            dfs_sz(v,u);
-            sz[u]+=sz[v];
-        }
-    }
-}
-signed main(int argc, char** argv) { 
+long long f[maxn][4];
+int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
-    cin >> n;
-    for(int i=1; i<=n; ++i) {cin >> a[i];ans+=a[i];}
+    cin >> n >> k;
     for(int i=1,u,v; i<n; ++i) {
         cin >> u >> v;
         adj[u].pb(v);
         adj[v].pb(u);
     }
-    auto centroid=[&](auto& self, int u, int p, int tot)->int {
-        for(auto v:adj[u]) {
-            if(!del[v] && v!=p && sz[v]>(tot>>1)) return self(self,v,u,tot);
-        }
-        return u;
-    };
-    vector<int>node;
+    for(int i=1; i<=k; ++i) {
+        int v,c;cin >> v >> c;
+        col[v]=c;
+    }
+    //cerr << num[1];
     auto dfs=[&](auto& self, int u, int p)->void {
+        for(int i=1; i<=3; ++i) {
+            if(col[u] && col[u]!=i) f[u][i]=0;
+            else f[u][i]=1;
+        }
         for(int v:adj[u]) {
-            if(v==p || del[v]) continue;
-            d[v]=d[u]^a[v];
-            node.pb(v);
-            self(self,v,u);
-        }
-    };
-    auto solve=[&](auto& self, int u)->void {
-        dfs_sz(u,0);
-        int r=centroid(centroid,u,0,sz[u]);
-        del[r]=true;
-        d[r]=a[r];
-        memset(cnt,0,sizeof(cnt));
-        for(int i=0; i<=20; ++i) {
-            bool bc=(a[r]&(1<<i));
-            ++cnt[i][bc];
-        }
-        for(int v:adj[r]) {
-            if(del[v]) continue;
-            node.clear();
-            d[v]=d[r]^a[v];
-            node.pb(v);
-            dfs(dfs,v,r);
-            for(int i=0; i<=20; ++i) {
-                bool bc=(a[r]&(1<<i));
-                for(int t:node) {
-                    bool bt=(d[t]&(1<<i));
-                    ans+=(1<<i)*(cnt[i][1^bc^bt]);
+            if(v!=p) {
+                self(self,v,u);
+                for(int i=1; i<=3; ++i) {
+                    long long add=0;
+                    for(int j=1; j<=3; ++j) {
+                        if(i!=j) add=(add+f[v][j])%mod;
+                    }
+                    f[u][i]=(f[u][i]*add)%mod;
                 }
             }
-            for(int t:node) {
-                for(int i=0; i<=20; ++i) {
-                    bool bt=(d[t]&(1<<i));
-                    ++cnt[i][bt];
-                }
-            }
-            node.clear();
-        }
-        for(int v:adj[r]) {
-            if(!del[v]) self(self,v);
         }
     };
-    solve(solve,1);
-    cout << ans;
+    dfs(dfs,1,0);
+    cout << (f[1][1]+f[1][2]+f[1][3])%mod;
     return 0; 
 
 } 
