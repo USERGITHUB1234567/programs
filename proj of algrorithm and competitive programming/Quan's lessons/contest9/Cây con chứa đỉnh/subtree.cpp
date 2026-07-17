@@ -39,7 +39,7 @@ inline void start_timer() {imp_st=high_resolution_clock::now();}
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
 int n,sz[maxn];
 vector<int>adj[maxn];
-long long ans[maxn];
+long long ans[maxn],f[maxn],up[maxn];
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> n;
@@ -49,20 +49,47 @@ int main(int argc, char** argv) {
         adj[v].pb(u);
     }
     auto dfs=[&](auto& self, int u, int p)->void {
-        sz[u]=1;
-        long long tmp=1;
+        f[u]=1;
         for(int v:adj[u]) {
             if(v!=p) {
                 self(self,v,u);
-                sz[u]+=sz[v];
-                tmp=(tmp*(sz[v]+1))%mod;
+                f[u]=(f[u]*(f[v]+1))%mod;
             }
         }
-        if(u!=1) tmp=(tmp*(n-sz[u]+1))%mod;
-        ans[u]=tmp;
+    };
+    auto reroot=[&](auto& self, int u, int p)->void {
+        ans[u]=(f[u]*(up[u]+1))%mod;
+        int num=adj[u].size();
+        vector<long long>pre(num,1),suf(num,1);
+        long long prod=1;
+        for(int i=0; i<num; ++i) {
+            int v=adj[u][i];
+            if(v!=p) prod=(prod*(f[v]+1))%mod;
+            pre[i]=prod;
+        }
+        prod=1;
+        for(int i=num-1; i>=0; --i) {
+            int v=adj[u][i];
+            if(v!=p) prod=(prod*(f[v]+1))%mod;
+            suf[i]=prod;
+        }
+        for(int i=0; i<num; ++i) {
+            int v=adj[u][i];
+            if(v==p) continue;
+            long long excl=1;
+            if(i>0) excl=(excl*pre[i-1])%mod;
+            if(i<num-1) excl=(excl*(suf[i+1]))%mod;
+            up[v]=((up[u]+1)*excl)%mod;
+            self(self,v,u);
+        }
+
     };
     dfs(dfs,1,0);
-    for(int i=1; i<=n; ++i) cout << ans[i] << ' ';
+    reroot(reroot,1,0);
+    for(int i=1; i<=n; ++i) {
+        //dfs(dfs,i,0);
+        cout << ans[i] << ' ';
+    }
     return 0; 
 
 } 
