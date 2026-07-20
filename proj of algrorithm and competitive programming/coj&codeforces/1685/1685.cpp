@@ -79,7 +79,7 @@ bool dfs(int u) {
 vector<point>hopcroft_karp() {
     vector<point>res;
     while(bfs()) {
-        for(int i=1; i<=n; ++i) dfs(i);
+        for(int i=1; i<=n; ++i) if(!pairX[i])dfs(i);
     }
     for(int i=1; i<=n; ++i) {
         res.pb(p1[i]);

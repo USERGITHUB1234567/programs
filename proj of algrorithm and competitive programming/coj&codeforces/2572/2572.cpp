@@ -16,7 +16,7 @@ static const int maxd=1003;
 typedef short bignum[maxd]; 
 typedef long long ll; 
 typedef long double ld; 
-const int maxn=200005,mod=1000000007,maxb=320; 
+const int maxn=100005,mod=1000000007,maxb=320; 
 namespace utilities{ 
     long long fact[maxn],ifact[maxn]; 
     long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
@@ -37,61 +37,58 @@ inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);}
 auto imp_st=high_resolution_clock::now(); 
 inline void start_timer() {imp_st=high_resolution_clock::now();} 
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
-int n,m;
-vector<long long>t[2];
-vector<int>t2;
+int n,m,pairX[maxn],pairY[maxn],d[maxn];
+vector<int>adj[maxn];
+bool bfs() {
+    queue<int>q;
+    for(int i=1; i<=n; ++i) {
+        if(!pairX[i]) {d[i]=0;q.push(i);}
+        else d[i]=-1;
+    }
+    d[0]=-1;
+    while(!q.empty()) {
+        int u=q.front();q.pop();
+        if(d[u]!=d[0]) {
+            for(int v:adj[u]) {
+                if(d[pairY[v]]==-1) {
+                    d[pairY[v]]=d[u]+1;
+                    q.push(pairY[v]);
+                }
+            }
+        }
+    }
+    return d[0]!=-1;
+}
+bool dfs(int u) {
+    if(!u) return true;
+    for(int v:adj[u]) {
+        if(d[pairY[v]]==d[u]+1 && dfs(pairY[v])) {
+            pairX[u]=v;
+            pairY[v]=u;
+            return true;
+        }
+    }
+    d[u]=-1;
+    return false;
+}
+int hopcroft_karp() {
+    int match=0;
+    while(bfs()) {
+        for(int i=1; i<=n; ++i) {
+            if(!pairX[i] && dfs(i)) ++match;
+        }
+    }
+    return match;
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> n >> m;
-    for(int i=1; i<=n; ++i) {
-        int type,x;cin >> type >> x;
-        if(type<2) t[type].pb(x);
-        else t2.pb(x);
+    for(int i=1,u,v; i<=m; ++i) {
+        cin >> u >> v;
+        adj[u].pb(v);
     }
-    sort(all(t[0]),greater<long long>());
-    sort(all(t[1]),greater<long long>());
-    sort(all(t2),greater<long long>());
-    long long cur=0,p=min(m-1,(int)t[0].size()-1),ans=0,used=p+1;
-    if(!t[0].empty())for(int i=0; i<=p; ++i) cur+=t[0][i];
-    if(t[0].empty()) used=0;
-    ans=cur;
-    if(t[1].empty()) {cout << ans;return 0;}
-    for(int i=0,j=0,key=0; i<t2.size(); ++i) {
-        if(p==0) break;
-        key+=t2[i];
-        //if(j==t[1].size()) break;
-        ++used;
-        if(used>m) {if(p>0 || !t[0].empty()){--used;cur-=t[0][p];--p;}else break;}
-        for(j; j<t[1].size() && j<key; ++j) {
-            //cerr << j << ' ';
-            ++used;
-            if(used>m) {if(p>0 || !t[1].empty()){--used;cur-=t[0][p];--p;}else break;}
-            cur+=t[1][j];
-            ans=max(ans,cur);
-        }
-        //cerr << cur << ' ';
-    }
-    cout << ans;
+    cout << n-hopcroft_karp();
     return 0; 
 
 } 
 /**/
-/*
-8 4
-0 6
-0 6
-1 3
-1 5
-1 15
-2 1
-2 10
-2 100
-
-6 4
-1 100
-1 80
-1 60
-1 50
-2 1
-2 3
-*/
