@@ -39,11 +39,24 @@ inline void start_timer() {imp_st=high_resolution_clock::now();}
 inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
 int v,e,cd,md,cp,mp,a,b;
 array<int,4>edge[maxn];
+//vector<int>adj[maxn];
+namespace soup1{
+    void solve() {
+        for(int i=1; i<=e; ++i) {
+            auto[x,y,k,q]=edge[i];
+            
+        }
+    }
+}
 int main(int argc, char** argv) { 
     ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
     cin >> v >> e >> cd >> md >> cp >> mp >> a >> b;
-    for(int i=1; i<=e; ++i) cin >> edge[i][0] >> edge[i][1] >> edge[i][2] >> edge[i][3];
-    
+    for(int i=1; i<=e; ++i) {
+        cin >> edge[i][0] >> edge[i][1] >> edge[i][2] >> edge[i][3];
+        //adj[edge[i][0]].pb(edge[i][1]);
+        //adj[edge[i][1]].pb(edge[i][0]);
+    }
+
     return 0; 
 
 } 
