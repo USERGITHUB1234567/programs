@@ -2,5 +2,6 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-    cout << 0.1+0.2;
+    long double a=0.1,b=0.0;
+    cout << fixed << setprecision(2000) << a+b;
 }
