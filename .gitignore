@@ -1,13 +1,6 @@
-# Ignore binary & compiled files
+*.zip
+*.mp4
+*.pdf
 *.o
 *.out
-*.exe
-*.app
-*.dSYM/
-.DS_Store
-
-# Bỏ qua các file thực thi không có đuôi mở rộng (trên macOS/Linux)
-proj of algrorithm and competitive programming/**/binary
-proj of algrorithm and competitive programming/**/cccdt
-proj of algrorithm and competitive programming/**/cht
-proj of algrorithm and competitive programming/**/dsurollback
+*.inp
