@@ -1,1 +1,0 @@
-if(!check(l)) check(r);
