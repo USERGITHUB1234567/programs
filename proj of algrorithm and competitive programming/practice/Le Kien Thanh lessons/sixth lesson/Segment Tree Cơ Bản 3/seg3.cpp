@@ -1,0 +1,111 @@
+/**/ 
+#pragma GCC optimize("O3","Ofast","unroll-loops") 
+#include <bits/stdc++.h> 
+#define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
+#define all(x) x.begin(), x.end() 
+#define sortunique(x) sort(all(x)); x.erase(unique(all(x)), x.end()); 
+#define forw(i,a,b) for(int (i)=(a); (i)<=(b); ++(i)) 
+#define forb(i,a,b) for(int (i)=(a); (i)>=(b); --(i)) 
+#define eb emplace_back 
+#define fi first 
+#define se second 
+#define pb push_back 
+using namespace std; 
+using namespace std::chrono; 
+static const int maxd=1003; 
+typedef short bignum[maxd]; 
+typedef long long ll; 
+typedef long double ld; 
+const int maxn=100005,mod=1000000007,maxb=320; 
+namespace utilities{ 
+    long long fact[maxn],ifact[maxn]; 
+    long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
+    inline ll __logarit(ll k, ll n){ll res=0;while(n>0){n/=k;++res;}return res;} 
+    inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e>0) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
+    inline int maxi(int a, int b) {return (a>b?a:b);} 
+    inline int mini(int a, int b) {return (a<b?a:b);} 
+    inline ll maxill(ll a, ll b) {return (a>b?a:b);} 
+    inline ll minill(ll a, ll b) {return (a<b?a:b);} 
+    inline double maxid(double a, double b) {return (a>b?a:b);} 
+    inline double minid(double a, double b) {return (a<b?a:b);} 
+    inline ld maxild(ld a, ld b) {return (a>b?a:b);} 
+    inline ld minild(ld a, ld b) {return (a<b?a:b);} 
+    void setUpFactor() { fact[0]=1; for(int i=1; i<maxn; ++i) fact[i]=fact[i-1]*i%mod; int tc=maxn-1; ifact[tc]=modexp(fact[tc],mod-2,mod); for(int i=tc; i>=1; --i) ifact[i-1]=ifact[i]*i%mod; } 
+    inline long long ncr(long long k, long long n) {return (k==n?1:fact[n]*ifact[n-k]%mod*ifact[k]%mod);} 
+    inline int lomuto_partition(vector<int>&a, int l, int r) {int pivot=a[r],i=l-1;for(int j=l; j<r; ++j) {if(a[j]<=pivot) {++i;swap(a[i],a[j]);}}swap(a[r],a[i+1]);return i+1;} 
+    inline int hoare_partition(vector<int>&a, int l, int r) {int pivot=a[l],i=l,j=r;bool partition=true;while(partition) {while(a[i]<pivot) ++i;while(a[j]>pivot) --j;if(i<j) {swap(a[i],a[j]);++i,--j;}else partition=false;}return j;} 
+    inline void quicksort_lomuto(vector<int>&a, int l, int r) {if(l>=r) return;int p=lomuto_partition(a,l,r);quicksort_lomuto(a,l,p-1);quicksort_lomuto(a,p+1,r);} 
+    inline void quicksort_hoare(vector<int>&a, int l, int r) {if(l>=r) return;int p=hoare_partition(a,l,r);quicksort_hoare(a,l,p);quicksort_hoare(a,p+1,r);} 
+} 
+//using namespace utilities; 
+mt19937_64 generator1(steady_clock::now().time_since_epoch().count()); 
+mt19937_64 generator2(high_resolution_clock::now().time_since_epoch().count()); 
+inline long long rnd1(long long a, long long b) {return a+generator1()%(b-a+1);} 
+inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);} 
+auto imp_st=high_resolution_clock::now(); 
+inline void start_timer() {imp_st=high_resolution_clock::now();} 
+inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
+int n,q;
+class segmen_tree{
+    private:
+        long long st[maxn<<2],laz[maxn<<2];
+    public:
+        long long a[maxn];
+        void build(int id, int l, int r) {
+            if(l==r) {st[id]=a[l];return;}
+            int mid=(l+r)>>1;
+            build(id<<1,l,mid);
+            build(id<<1|1,mid+1,r);
+            st[id]=max(st[id<<1],st[id<<1|1]);
+        }
+        void down(int id, int l, int r) {
+            if(l==r || laz[id]==0) return;
+            long long t=laz[id];
+            st[id<<1]+=t;
+            st[id<<1|1]+=t;
+            laz[id<<1]+=t;
+            laz[id<<1|1]+=t;
+            laz[id]=0;
+        }
+        void update(int id, int l, int r, int i, int j, long long v) {
+            if(l>j || r<i) return;
+            if(l>=i && r<=j) {
+                st[id]+=v;
+                laz[id]+=v;
+                return;
+            }
+            down(id,l,r);
+            int mid=(l+r)>>1;
+            if(i<=mid) update(id<<1,l,mid,i,j,v);
+            if(j>mid) update(id<<1|1,mid+1,r,i,j,v);
+            st[id]=max(st[id<<1],st[id<<1|1]);
+        }
+        long long query(int id, int l, int r, int i, int j) {
+            down(id,l,r);
+            if(l>=i && r<=j) return st[id];
+            int mid=(l+r)>>1;
+            if(j<=mid) return query(id<<1,l,mid,i,j);
+            if(i>mid) return query(id<<1|1,mid+1,r,i,j);
+            return max(query(id<<1,l,mid,i,j),query(id<<1|1,mid+1,r,i,j));
+        }
+}seg;
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n;for(int i=1; i<=n; ++i) cin >> seg.a[i];
+    seg.build(1,1,n);
+    cin >> q;
+    while(q--) {
+        int ty;cin >> ty;
+        if(ty==1) {
+            int x,y,val;cin >> x >> y >> val;
+            seg.update(1,1,n,x,y,val);
+        }
+        else {
+            int l,r;cin >> l >> r;
+            cout << seg.query(1,1,n,l,r) << '\n';
+        }
+    }
+    return 0; 
+
+} 
+/**/

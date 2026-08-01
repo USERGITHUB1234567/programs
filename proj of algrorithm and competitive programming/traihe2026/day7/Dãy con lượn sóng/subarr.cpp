@@ -1,0 +1,124 @@
+/**/ 
+#pragma GCC optimize("O3","Ofast","unroll-loops") 
+#include <bits/stdc++.h> 
+#define file(name) freopen(name ".inp", "r", stdin); freopen(name ".out", "w", stdout); 
+#define all(x) x.begin(), x.end() 
+#define sortunique(x) sort(all(x)); x.erase(unique(all(x)), x.end()); 
+#define forw(i,a,b) for(int (i)=(a); (i)<=(b); ++(i)) 
+#define forb(i,a,b) for(int (i)=(a); (i)>=(b); --(i)) 
+#define eb emplace_back 
+#define fi first 
+#define se second 
+#define pb push_back 
+using namespace std; 
+using namespace std::chrono; 
+static const int maxd=1003; 
+typedef short bignum[maxd]; 
+typedef long long ll; 
+typedef long double ld; 
+const int maxn=300005,mod=1000000007,maxb=320; 
+namespace utilities{ 
+    long long fact[maxn],ifact[maxn]; 
+    long long __uiagcd(long long a, long long b) { if(a<b) swap(a,b); while(a%b!=0) {long long c=a%b;a=b,b=c;} return b; } 
+    inline ll __logarit(ll k, ll n){ll res=0;while(n>0){n/=k;++res;}return res;} 
+    inline ll modexp(ll b, ll e, ll m) { ll res=1%m; while(e>0) { if(e&1) res=(res*b)%m; b=(b*b)%m; e>>=1; } return res; } 
+    void setUpFactor() { fact[0]=1; for(int i=1; i<maxn; ++i) fact[i]=fact[i-1]*i%mod; int tc=maxn-1; ifact[tc]=modexp(fact[tc],mod-2,mod); for(int i=tc; i>=1; --i) ifact[i-1]=ifact[i]*i%mod; } 
+    inline long long ncr(long long k, long long n) {return (k==n?1:fact[n]*ifact[n-k]%mod*ifact[k]%mod);} 
+    inline int lomuto_partition(vector<int>&a, int l, int r) {int pivot=a[r],i=l-1;for(int j=l; j<r; ++j) {if(a[j]<=pivot) {++i;swap(a[i],a[j]);}}swap(a[r],a[i+1]);return i+1;} 
+    inline int hoare_partition(vector<int>&a, int l, int r) {int pivot=a[l],i=l,j=r;bool partition=true;while(partition) {while(a[i]<pivot) ++i;while(a[j]>pivot) --j;if(i<j) {swap(a[i],a[j]);++i,--j;}else partition=false;}return j;} 
+    inline void quicksort_lomuto(vector<int>&a, int l, int r) {if(l>=r) return;int p=lomuto_partition(a,l,r);quicksort_lomuto(a,l,p-1);quicksort_lomuto(a,p+1,r);} 
+    inline void quicksort_hoare(vector<int>&a, int l, int r) {if(l>=r) return;int p=hoare_partition(a,l,r);quicksort_hoare(a,l,p);quicksort_hoare(a,p+1,r);} 
+} 
+//using namespace utilities; 
+mt19937_64 generator1(steady_clock::now().time_since_epoch().count()); 
+mt19937_64 generator2(high_resolution_clock::now().time_since_epoch().count()); 
+inline long long rnd1(long long a, long long b) {return a+generator1()%(b-a+1);} 
+inline long long rnd2(long long a, long long b) {return a+generator2()%(b-a+1);} 
+auto imp_st=high_resolution_clock::now(); 
+inline void start_timer() {imp_st=high_resolution_clock::now();} 
+inline void get_execution_time() { auto imp_en=high_resolution_clock::now(); cerr << "Implementation Time: "<< duration_cast<milliseconds>(imp_en-imp_st).count() << " ms\n"; } 
+int n,m,a[maxn];
+namespace soup1{
+    void solve() {
+        int ans=0;
+        for(int x=1; x<m; ++x) {
+            for(int y=x+1; y<=m; ++y) {
+                int cur=-1,nxt=-1;
+                for(int i=1; i<=n; ++i) {
+                    if((a[i]==x || a[i]==y) && cur==-1) {
+                        nxt=a[i];
+                        cur=(x+y)-a[i];
+                        ++ans;
+                        //cerr << x << ' ' << y << ' ' << a[i] << '\n';
+                        //cerr << a[i] << ' ';
+                    }
+                    else if(a[i]==cur) {++ans,swap(cur,nxt);}
+                }
+                //cerr << ans << '\n';
+            }
+        }
+        cout << ans;
+    }
+}
+class fenwick_tree{
+    private:
+        int n;
+        vector<int>ft;
+    public:
+        fenwick_tree(int _n):n(_n+1) {ft.resize(n);}
+        void update(int i, int v) {
+            while(i<n) {
+                ft[i]+=v;
+                i+=i&-i;
+            }
+        }
+        int sum(int i) {
+            int res=0;
+            while(i) {
+                res+=ft[i];
+                i-=i&-i;
+            }
+            return res;
+        }
+        int range(int l, int r) {return sum(r)-(l-1>=1?sum(l-1):0);}
+};
+namespace soupfull{
+    vector<int>val;
+    int mk[maxn];
+    void solve() {
+        long long ans=0;
+        // val.pb(a[1]);
+        // for(int i=2; i<=n; ++i) {
+        //     if(a[i]!=a[i-1]) val.pb(a[i]);
+        // }
+        fenwick_tree ft(n);
+        set<int>st;
+        for(int i=1; i<=n; ++i) {
+            st.insert(a[i]);
+            ans+=ft.range(mk[a[i]]+1,i);
+            //cerr << ans << ' ' << mk[a[i]] << '\n';
+            if(mk[a[i]]) {ft.update(mk[a[i]],-1);}
+            mk[a[i]]=i;
+            ft.update(i,1);
+            
+        }
+        ll x=st.size();
+        ans+=((x-1)*x)>>1;
+        ans+=x*(m-x);
+        cout << ans;
+    }
+}
+int main(int argc, char** argv) { 
+    ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr); 
+    cin >> n >> m;for(int i=1; i<=n; ++i) cin >> a[i];
+    soupfull::solve();
+    return 0; 
+
+} 
+/*
+1 2: 1 2
+
+5 4
+3 2 1 3 2
+*/
+/**/
