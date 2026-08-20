@@ -38,6 +38,32 @@ namespace souptrau{
         cout << ans;
     }
 }
+namespace soupfull{
+    void implement() {
+        vector<pair<int,int>>store;
+        for(int i=1; i<=r; ++i) {
+            int len=accumulate(door[i].begin(),door[i].end(),0),sum=0;
+            for(int j=0; j<door[i].size(); ++j) {
+                int left=sum,right=l+1-len+door[i][j]+sum,cur=door[i][j];
+                int t1=left+cur,t2=right-cur;
+                if(t2<=t1) store.push_back({t2,t1});
+                sum+=cur;
+            }
+        }
+        sort(store.begin(),store.end());
+        int ans=0,mx=0,st=0;
+        for(int i=0; i<store.size(); ++i) {
+            auto[u,v]=store[i];
+            if(u>mx) {
+                if(st)ans+=mx-st+1;
+                st=u;
+                mx=v;
+            }else mx=max(mx,v);
+        }
+        if(st)ans+=mx-st+1;
+        cout << ans;
+    }
+}
 int main(int argc, char** argv) {
     ios_base::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
     freopen("laser.inp", "r", stdin);
@@ -51,8 +77,8 @@ int main(int argc, char** argv) {
             door[i].push_back(t);
         }
     }
-    if(soup2::check()) soup2::implement();
-    else souptrau::implement();
+    //if(soup2::check()) soup2::implement();
+    soupfull::implement();
 }
 /*
 11 3

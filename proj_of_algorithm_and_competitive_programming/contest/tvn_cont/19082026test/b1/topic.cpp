@@ -1,3 +1,4 @@
+#pragma GCC optimize("O3,Ofast,unroll-loops")
 #include <bits/stdc++.h>
 using namespace std;
 int n,k;
@@ -32,7 +33,7 @@ namespace soupfull{
         vector<bool>mk(n+1,false);
         vector<long long>state(k+1,0);
         vector<int>cnt(n+1,0),cur(k+1,0);
-        vector<vector<pair<int,int>>>store(k+1);
+        vector<pair<int,int>>store[k+1];
         queue<int>q;
         for(int i=1; i<=n; ++i) {
             bool ck=true;
@@ -92,8 +93,8 @@ namespace soupfull{
 }
 int main(int argc, char** argv) {
     ios_base::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
-    freopen("topic.inp", "r", stdin);
-    freopen("topic.out", "w", stdout);
+    // freopen("topic.inp", "r", stdin);
+    // freopen("topic.out", "w", stdout);
     //cout << 'a';
     cin >> n >> k;
     r.assign(n+1,vector<int>(k+1,0));
