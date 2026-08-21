@@ -40,6 +40,16 @@ namespace soup1{
         cout << ans;
     }
 }
+namespace soup2{
+    long long f[302][302][302];
+    void implement() {
+        for(int i=1; i<n; ++i) {
+            for(int j=i-1; j>=1; --j) {
+                
+            }
+        }
+    }
+}
 int main(int argc, char** argv) {
     freopen("coats.inp", "r", stdin);
     freopen("coats.out", "w", stdout);
