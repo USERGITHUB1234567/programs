@@ -3,8 +3,10 @@ using namespace std;
 const int maxn=200005;
 int n,m,q;
 long long a[maxn],b[maxn],dif[maxn],ans[maxn];
-vector<pair<int,int>>query;
+vector<pair<long long,int>>query;
 int main(int argc, char** argv) {
+    freopen("clocks.inp", "r", stdin);
+    freopen("clocks.out", "w", stdout);
     cin >> n >> m;
     for(int i=1; i<=n; ++i) cin >> a[i] >> b[i];
     cin >> q;
